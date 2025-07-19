@@ -68,9 +68,18 @@ export default function TutorPage() {
       const tutors = response.data
       const [firstName, lastName] = fullName.toLowerCase().split(" ")
 
-      const foundTutor = tutors.find(
-        (tutor: Tutor) => tutor.firstName.toLowerCase() === firstName && tutor.lastName.toLowerCase() === lastName,
-      )
+     const foundTutor = tutors.find((tutor: Tutor) => {
+  if (
+    typeof tutor.firstName !== "string" ||
+    typeof tutor.lastName !== "string"
+  ) {
+    return false;
+  }
+  return (
+    tutor.firstName.toLowerCase() === firstName &&
+    tutor.lastName.toLowerCase() === lastName
+  );
+});
 
       return foundTutor || null
     } catch (error) {
