@@ -61,35 +61,29 @@ export default function TutorPage() {
       return () => clearTimeout(timer)
     }
   }, [currentStep])
-const findTutorByName = async (fullName: string): Promise<Tutor | null> => {
-  try {
-    const response = await axios.get(API_ENDPOINTS.TUTORS);
-    const tutors = response.data;
-    const [firstName, lastName] = fullName.toLowerCase().split(" ");
 
-    const foundTutor = tutors.find((tutor: Tutor) => {
-      // Check if firstName and lastName exist as arrays with at least one string element
-      if (
-        !Array.isArray(tutor.firstName) ||
-        !Array.isArray(tutor.lastName) ||
-        typeof tutor.firstName[0] !== "string" ||
-        typeof tutor.lastName[0] !== "string"
-      ) {
-        return false;
-      }
+  const findTutorByName = async (fullName: string): Promise<Tutor | null> => {
+    try {
+      const response = await axios.get(API_ENDPOINTS.TUTORS);
+      const tutors = response.data;
+      const [firstName, lastName] = fullName.toLowerCase().split(" ");
 
-      return (
-        tutor.firstName[0].toLowerCase() === firstName &&
-        tutor.lastName[0].toLowerCase() === lastName
-      );
-    });
+      const foundTutor = tutors.find((tutor: Tutor) => {
+        return (
+          typeof tutor.firstName === "string" &&
+          typeof tutor.lastName === "string" &&
+          tutor.firstName.toLowerCase() === firstName &&
+          tutor.lastName.toLowerCase() === lastName
+        );
+      });
 
-    return foundTutor || null;
-  } catch (error) {
-    console.error("Error finding tutor:", error);
-    return null;
-  }
-};
+      return foundTutor || null;
+    } catch (error) {
+      console.error("Error finding tutor:", error);
+      return null;
+    }
+  };
+
 
 
   const checkExistingReservation = async (tutorId: string): Promise<Reservation | null> => {
