@@ -146,12 +146,16 @@ export default function Dashboard() {
   // Tutor Management Functions
   const addTutor = async () => {
     try {
-      const formData = new FormData()
-      formData.append("firstName", newTutor.firstName)
-      formData.append("lastName", newTutor.lastName)
-      if (newTutorImage) formData.append("image", newTutorImage)
+      const formData = new FormData();
+formData.append("firstName", newTutor.firstName);
+formData.append("lastName", newTutor.lastName);
+if (newTutorImage) {
+  formData.append("image", newTutorImage);
+}
 
-      await axios.post(API_ENDPOINTS.TUTORS, formData)
+await axios.post('/api/tutors', formData);
+
+
       setNewTutor({ firstName: "", lastName: "" })
       setNewTutorImage(null)
       fetchDashboardData()
