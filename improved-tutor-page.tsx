@@ -63,7 +63,7 @@ export default function ImprovedTutorPage() {
 
   const findTutorByName = async (fullName: string): Promise<Tutor | null> => {
     try {
-      const response = await axios.get("http://localhost:5000/api/tutors")
+      const response = await axios.get("/api/tutors")
       const tutors = response.data
       const [firstName, lastName] = fullName.toLowerCase().split(" ")
 
@@ -80,7 +80,7 @@ export default function ImprovedTutorPage() {
 
   const checkExistingReservation = async (tutorId: string): Promise<Reservation | null> => {
     try {
-      const response = await axios.get("http://localhost:5000/api/reservations")
+      const response = await axios.get("/api/reservations")
       const reservations = response.data
 
       const now = new Date()
@@ -102,8 +102,8 @@ export default function ImprovedTutorPage() {
   const getAvailableTables = async (): Promise<Table[]> => {
     try {
       const [tablesResponse, reservationsResponse] = await Promise.all([
-        axios.get("http://localhost:5000/api/tables"),
-        axios.get("http://localhost:5000/api/reservations"),
+        axios.get("/api/tables"),
+        axios.get("/api/reservations"),
       ])
 
       const tables = tablesResponse.data
@@ -129,7 +129,7 @@ export default function ImprovedTutorPage() {
 
   const makeReservation = async (tutorId: string, tableId: string): Promise<boolean> => {
     try {
-      await axios.post("http://localhost:5000/api/reservations", {
+      await axios.post("/api/reservations", {
         tableId,
         tutorId,
       })
