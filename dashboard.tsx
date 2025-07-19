@@ -380,24 +380,15 @@ await axios.post('/api/tutors', formData);
                   {tutors.map((tutor) => (
                     <Card key={tutor._id} className="border border-gray-200">
                       <CardContent className="p-4">
-                        <div className="flex items-center space-x-3 mb-3">
-                          {tutor.image ? (
-                            <img
-                              src={`${API_BASE_URL}${tutor.image}`}
-                              alt={`${tutor.firstName} ${tutor.lastName}`}
-                              className="w-12 h-12 rounded-full"
-                            />
-                          ) : (
-                            <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center">
-                              <Users className="w-6 h-6 text-white" />
-                            </div>
-                          )}
-                          <div>
-                            <p className="font-semibold">
-                              {tutor.firstName} {tutor.lastName}
-                            </p>
-                          </div>
-                        </div>
+                  <div className="flex items-center space-x-3 mb-3">
+  {/* Image removed as requested */}
+  <div>
+    <p className="font-semibold">
+      {tutor.firstName} {tutor.lastName}
+    </p>
+  </div>
+</div>
+
                         <div className="flex space-x-2">
                           <Button size="sm" variant="outline" onClick={() => startEditTutor(tutor)} className="flex-1">
                             <Edit className="w-4 h-4 mr-1" />
