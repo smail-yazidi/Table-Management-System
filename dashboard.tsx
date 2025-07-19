@@ -153,7 +153,7 @@ if (newTutorImage) {
   formData.append("image", newTutorImage);
 }
 
-await axios.post('/api/tutors', formData);
+await axios.post(API_ENDPOINTS.TUTORS, formData);
 
 
       setNewTutor({ firstName: "", lastName: "" })

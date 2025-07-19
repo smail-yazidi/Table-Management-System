@@ -1,5 +1,6 @@
 "use client"
-
+import { API_ENDPOINTS } from "./config/api"
+import API_BASE_URL from "./config/api"
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -63,7 +64,8 @@ export default function ImprovedTutorPage() {
 
   const findTutorByName = async (fullName: string): Promise<Tutor | null> => {
     try {
-      const response = await axios.get("/api/tutors")
+   const response = await axios.get(API_ENDPOINTS.TUTORS)
+
       const tutors = response.data
       const [firstName, lastName] = fullName.toLowerCase().split(" ")
 
@@ -80,7 +82,8 @@ export default function ImprovedTutorPage() {
 
   const checkExistingReservation = async (tutorId: string): Promise<Reservation | null> => {
     try {
-      const response = await axios.get("/api/reservations")
+   const response = await axios.get(API_ENDPOINTS.RESERVATIONS)
+
       const reservations = response.data
 
       const now = new Date()
@@ -101,10 +104,11 @@ export default function ImprovedTutorPage() {
 
   const getAvailableTables = async (): Promise<Table[]> => {
     try {
-      const [tablesResponse, reservationsResponse] = await Promise.all([
-        axios.get("/api/tables"),
-        axios.get("/api/reservations"),
-      ])
+   const [tablesResponse, reservationsResponse] = await Promise.all([
+  axios.get(API_ENDPOINTS.TABLES),
+  axios.get(API_ENDPOINTS.RESERVATIONS),
+])
+
 
       const tables = tablesResponse.data
       const reservations = reservationsResponse.data
@@ -129,10 +133,11 @@ export default function ImprovedTutorPage() {
 
   const makeReservation = async (tutorId: string, tableId: string): Promise<boolean> => {
     try {
-      await axios.post("/api/reservations", {
-        tableId,
-        tutorId,
-      })
+  await axios.post(API_ENDPOINTS.RESERVATIONS, {
+  tableId,
+  tutorId,
+})
+
       return true
     } catch (error) {
       console.error("Error making reservation:", error)
