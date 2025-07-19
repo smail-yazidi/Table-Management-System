@@ -519,26 +519,17 @@ export default function Dashboard() {
                       <div
                         key={reservation._id}
                         className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-100"
-                      >
-                        <div className="flex items-center space-x-3">
-                          {reservation.tutor.image ? (
-                            <img
-                              src={`${API_BASE_URL}${reservation.tutor.image}`}
-                              alt={`${reservation.tutor.firstName} ${reservation.tutor.lastName}`}
-                              className="w-10 h-10 rounded-full"
-                            />
-                          ) : (
-                            <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
-                              <Users className="w-5 h-5 text-white" />
-                            </div>
-                          )}
-                          <div>
-                            <p className="font-medium">
-                              {reservation.tutor.firstName} {reservation.tutor.lastName}
-                            </p>
-                            <p className="text-sm text-gray-500">Table {reservation.table.tableNumber}</p>
-                          </div>
-                        </div>
+                      ><div className="flex items-center space-x-3 mb-3">
+  <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center">
+    <Users className="w-6 h-6 text-white" />
+  </div>
+  <div>
+    <p className="font-semibold">
+      {tutor?.firstName?.[0] || "Unknown"} {tutor?.lastName?.[0] || ""}
+    </p>
+  </div>
+</div>
+
                         <div className="text-right">
                           <p className="text-sm font-medium">{formatTime(reservation.datetime)}</p>
                           <p className="text-xs text-gray-500">{formatDate(reservation.datetime)}</p>
