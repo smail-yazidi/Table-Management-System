@@ -144,25 +144,28 @@ export default function Dashboard() {
   }
 
   // Tutor Management Functions
+
   const addTutor = async () => {
     try {
-      const formData = new FormData();
-      formData.append("firstName", newTutor.firstName);
-      formData.append("lastName", newTutor.lastName);
-      if (newTutorImage) {
-        formData.append("image", newTutorImage);
-      }
+      const payload = {
+        firstName: newTutor.firstName,
+        lastName: newTutor.lastName,
+        // For image, if you want to send a URL or base64 string, include it here
+        image: newTutorImage || null,
+      };
 
-      await axios.post(API_ENDPOINTS.TUTORS, formData);
+      await axios.post(API_ENDPOINTS.TUTORS, payload, {
+        headers: { "Content-Type": "application/json" },
+      });
 
-
-      setNewTutor({ firstName: "", lastName: "" })
-      setNewTutorImage(null)
-      fetchDashboardData()
+      setNewTutor({ firstName: "", lastName: "" });
+      setNewTutorImage(null);
+      fetchDashboardData();
     } catch (error) {
-      console.error("Error adding tutor:", error)
+      console.error("Error adding tutor:", error);
     }
-  }
+  };
+
 
   const updateTutor = async () => {
     if (!editingTutor) return
@@ -507,7 +510,7 @@ export default function Dashboard() {
                   <span>Recent Reservations</span>
                 </CardTitle>
               </CardHeader>
-             <CardContent>
+              <CardContent>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {tutors.map((tutor) => (
                     <Card key={tutor._id} className="border border-gray-200">
