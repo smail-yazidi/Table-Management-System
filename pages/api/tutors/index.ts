@@ -5,7 +5,30 @@ import Tutor from "@/lib/models/Tutor"
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   await dbConnect()
+try {
+    const response = await fetch("/api/tutors", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        firstName: "John",
+        lastName: "Doe",
+        image: "https://example.com/john.jpg", // optional
+      }),
+    })
 
+    if (!response.ok) {
+      const errorData = await response.json()
+      console.error("Error adding tutor:", errorData)
+      return
+    }
+
+    const tutor = await response.json()
+    console.log("Tutor added:", tutor)
+  } catch (error) {
+    console.error("Error adding tutor:", error)
+  }
   if (req.method === "GET") {
     try {
       const tutors = await Tutor.find()
