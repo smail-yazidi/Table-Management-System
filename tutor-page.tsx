@@ -64,21 +64,23 @@ export default function TutorPage() {
 const findTutorByName = async (fullName: string): Promise<Tutor | null> => {
   try {
     const response = await axios.get(API_ENDPOINTS.TUTORS);
-    console.log("Fetched tutors:", response.data);
-
     const tutors = response.data;
     const [firstName, lastName] = fullName.toLowerCase().split(" ");
 
     const foundTutor = tutors.find((tutor: Tutor) => {
+      // Check if firstName and lastName exist as arrays with at least one string element
       if (
-        typeof tutor.firstName !== "string" ||
-        typeof tutor.lastName !== "string"
+        !Array.isArray(tutor.firstName) ||
+        !Array.isArray(tutor.lastName) ||
+        typeof tutor.firstName[0] !== "string" ||
+        typeof tutor.lastName[0] !== "string"
       ) {
         return false;
       }
+
       return (
-        tutor.firstName.toLowerCase() === firstName &&
-        tutor.lastName.toLowerCase() === lastName
+        tutor.firstName[0].toLowerCase() === firstName &&
+        tutor.lastName[0].toLowerCase() === lastName
       );
     });
 
