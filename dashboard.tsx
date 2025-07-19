@@ -147,13 +147,13 @@ export default function Dashboard() {
   const addTutor = async () => {
     try {
       const formData = new FormData();
-formData.append("firstName", newTutor.firstName);
-formData.append("lastName", newTutor.lastName);
-if (newTutorImage) {
-  formData.append("image", newTutorImage);
-}
+      formData.append("firstName", newTutor.firstName);
+      formData.append("lastName", newTutor.lastName);
+      if (newTutorImage) {
+        formData.append("image", newTutorImage);
+      }
 
-await axios.post(API_ENDPOINTS.TUTORS, formData);
+      await axios.post(API_ENDPOINTS.TUTORS, formData);
 
 
       setNewTutor({ firstName: "", lastName: "" })
@@ -381,15 +381,34 @@ await axios.post(API_ENDPOINTS.TUTORS, formData);
                     <Card key={tutor._id} className="border border-gray-200">
                       <CardContent className="p-4">
                         <div className="flex items-center space-x-3 mb-3">
-                          {tutor.image ? (
-                            <img
-                              src={`${API_BASE_URL}${tutor.image}`}
-                              alt={`${tutor.firstName} ${tutor.lastName}`}
-                              className="w-12 h-12 rounded-full"
-                            />
+
+                          {tutor ? (
+                            <div className="flex items-center space-x-3 mb-3">
+                              {tutor.image ? (
+                                <img
+                                  src={`${API_BASE_URL}${tutor.image}`}
+                                  alt={`${tutor.firstName} ${tutor.lastName}`}
+                                  className="w-12 h-12 rounded-full"
+                                />
+                              ) : (
+                                <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center">
+                                  <Users className="w-6 h-6 text-white" />
+                                </div>
+                              )}
+                              <div>
+                                <p className="font-semibold">
+                                  {tutor.firstName} {tutor.lastName}
+                                </p>
+                              </div>
+                            </div>
                           ) : (
-                            <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center">
-                              <Users className="w-6 h-6 text-white" />
+                            <div className="flex items-center space-x-3 mb-3">
+                              <div className="w-12 h-12 bg-gray-400 rounded-full flex items-center justify-center">
+                                <Users className="w-6 h-6 text-white" />
+                              </div>
+                              <div>
+                                <p className="font-semibold text-gray-500 italic">No tutor assigned</p>
+                              </div>
                             </div>
                           )}
                           <div>
