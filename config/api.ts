@@ -1,5 +1,6 @@
-// API Configuration
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"
+
+// config/api.ts
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || ""
 
 export const API_ENDPOINTS = {
   TUTORS: `${API_BASE_URL}/api/tutors`,
@@ -9,3 +10,4 @@ export const API_ENDPOINTS = {
 }
 
 export default API_BASE_URL
+

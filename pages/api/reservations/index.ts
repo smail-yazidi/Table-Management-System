@@ -1,30 +1,36 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-import clientPromise from '@/lib/mongodb';
+// /pages/api/reservations/index.ts
+import type { NextApiRequest, NextApiResponse } from "next"
+import dbConnect from "@/lib/db"
+import Reservation from "@/lib/models/Reservation"
+import Tutor from "@/lib/models/Tutor"
+import Table from "@/lib/models/Table"
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const client = await clientPromise;
-  const db = client.db('studyhall');
-  const reservations = db.collection('reservations');
+  await dbConnect()
 
-  switch (req.method) {
-    case 'GET': {
-      const all = await reservations.find().toArray();
-      return res.status(200).json(all);
-    }
-    case 'POST': {
-      const { tutorId, tableId } = req.body;
-      const datetime = new Date();
-
-      const existingTutor = await reservations.findOne({ tutorId, datetime });
-      const existingTable = await reservations.findOne({ tableId, datetime });
-
-      if (existingTutor) return res.status(400).json({ error: 'Tutor already reserved at this time' });
-      if (existingTable) return res.status(400).json({ error: 'Table already reserved at this time' });
-
-      const result = await reservations.insertOne({ tutorId, tableId, datetime });
-      return res.status(201).json(result);
-    }
-    default:
-      return res.status(405).json({ error: 'Method not allowed' });
+  if (req.method === "GET") {
+    const reservations = await Reservation.find().populate("tutorId").populate("tableId")
+    return res.status(200).json(reservations)
   }
+
+  if (req.method === "POST") {
+    const { tableId, tutorId } = req.body
+    const now = new Date()
+
+    const existing = await Reservation.findOne({ tutorId, datetime: now })
+    if (existing) {
+      return res.status(400).json({ error: "Tutor already has a reservation at this moment" })
+    }
+
+    const taken = await Reservation.findOne({ tableId, datetime: now })
+    if (taken) {
+      return res.status(400).json({ error: "Table already reserved at this moment" })
+    }
+
+    await Reservation.create({ tutorId, tableId, datetime: now })
+    return res.status(200).json({ message: "Reservation successful" })
+  }
+
+  res.setHeader("Allow", ["GET", "POST"])
+  res.status(405).end(`Method ${req.method} Not Allowed`)
 }

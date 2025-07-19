@@ -1,50 +1,22 @@
-// pages/api/tutors.ts
-
-import { IncomingForm } from 'formidable';
-import type { NextApiRequest, NextApiResponse } from 'next';
-import clientPromise from '@/lib/mongodb';
-
-// Disable default body parser for file uploads
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
+// /pages/api/tutors/index.ts
+import type { NextApiRequest, NextApiResponse } from "next"
+import dbConnect from "@/lib/db"
+import Tutor from "@/lib/models/Tutor"
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const client = await clientPromise;
-  const db = client.db('studyhall');
-  const tutors = db.collection('tutors');
+  await dbConnect()
 
-  switch (req.method) {
-    case 'POST':
-      try {
-        const data: any = await new Promise((resolve, reject) => {
-          const form = new IncomingForm({ keepExtensions: true });
-          form.parse(req, (err, fields, files) => {
-            if (err) reject(err);
-            else resolve({ fields, files });
-          });
-        });
-
-        const { firstName, lastName } = data.fields;
-
-        await tutors.insertOne({
-          firstName,
-          lastName,
-          image: null, // You can replace this later with file path or Cloudinary URL
-        });
-
-        return res.status(201).json({ message: 'Tutor added' });
-      } catch (error) {
-        return res.status(500).json({ error: 'Failed to add tutor' });
-      }
-
-    case 'GET':
-      const allTutors = await tutors.find().toArray();
-      return res.status(200).json(allTutors);
-
-    default:
-      return res.status(405).json({ error: 'Method not allowed' });
+  if (req.method === "GET") {
+    const tutors = await Tutor.find()
+    return res.status(200).json(tutors)
   }
+
+  if (req.method === "POST") {
+    const { firstName, lastName, image } = req.body
+    const newTutor = await Tutor.create({ firstName, lastName, image })
+    return res.status(201).json(newTutor)
+  }
+
+  res.setHeader("Allow", ["GET", "POST"])
+  res.status(405).end(`Method ${req.method} Not Allowed`)
 }
