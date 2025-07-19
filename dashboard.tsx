@@ -507,36 +507,47 @@ export default function Dashboard() {
                   <span>Recent Reservations</span>
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-3 max-h-96 overflow-y-auto">
-                  {recentReservations.length === 0 ? (
-                    <Alert>
-                      <AlertTriangle className="h-4 w-4" />
-                      <AlertDescription>No recent reservations found.</AlertDescription>
-                    </Alert>
-                  ) : (
-                    recentReservations.map((reservation) => (
-                      <div
-                        key={reservation._id}
-                        className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-100"
-                      ><div className="flex items-center space-x-3 mb-3">
-  <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center">
-    <Users className="w-6 h-6 text-white" />
-  </div>
-  <div>
-    <p className="font-semibold">
-      {tutor?.firstName?.[0] || "Unknown"} {tutor?.lastName?.[0] || ""}
-    </p>
-  </div>
-</div>
-
-                        <div className="text-right">
-                          <p className="text-sm font-medium">{formatTime(reservation.datetime)}</p>
-                          <p className="text-xs text-gray-500">{formatDate(reservation.datetime)}</p>
+             <CardContent>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {tutors.map((tutor) => (
+                    <Card key={tutor._id} className="border border-gray-200">
+                      <CardContent className="p-4">
+                        <div className="flex items-center space-x-3 mb-3">
+                          {tutor.image ? (
+                            <img
+                              src={`${API_BASE_URL}${tutor.image}`}
+                              alt={`${tutor.firstName} ${tutor.lastName}`}
+                              className="w-12 h-12 rounded-full"
+                            />
+                          ) : (
+                            <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center">
+                              <Users className="w-6 h-6 text-white" />
+                            </div>
+                          )}
+                          <div>
+                            <p className="font-semibold">
+                              {tutor.firstName} {tutor.lastName}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    ))
-                  )}
+                        <div className="flex space-x-2">
+                          <Button size="sm" variant="outline" onClick={() => startEditTutor(tutor)} className="flex-1">
+                            <Edit className="w-4 h-4 mr-1" />
+                            Edit
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => deleteTutor(tutor._id)}
+                            className="flex-1"
+                          >
+                            <Trash2 className="w-4 h-4 mr-1" />
+                            Delete
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
                 </div>
               </CardContent>
             </Card>
