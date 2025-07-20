@@ -229,7 +229,7 @@ export default function Dashboard() {
         method: "DELETE",
       })
       console.log("Table deleted")
-      // Refresh data here
+      fetchDashboardData();
     } catch (error) {
       console.error("Failed to delete table:", error)
     }

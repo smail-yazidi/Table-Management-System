@@ -87,25 +87,25 @@ export default function TutorPage() {
 
 
   const checkExistingReservation = async (tutorId: string): Promise<Reservation | null> => {
-    try {
-      const response = await axios.get(API_ENDPOINTS.RESERVATIONS)
-      const reservations = response.data
+  try {
+    const response = await axios.get(API_ENDPOINTS.RESERVATIONS)
+    const reservations = response.data
 
-      const now = new Date()
-      const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000)
+    const now = new Date()
 
-      const existingReservation = reservations.find((r: Reservation) => {
-        if (!r.datetime || !r.tutor) return false
-        const resTime = new Date(r.datetime)
-        return resTime >= oneHourAgo && resTime <= now && r.tutor._id === tutorId
-      })
+    // Find any reservation for this tutor whose datetime is in the future (or currently active)
+    const existingReservation = reservations.find((r: Reservation) => {
+      if (!r.datetime || !r.tutor) return false
+      const resTime = new Date(r.datetime)
+      return resTime >= now && r.tutor._id === tutorId
+    })
 
-      return existingReservation || null
-    } catch (error) {
-      console.error("Error checking reservations:", error)
-      return null
-    }
+    return existingReservation || null
+  } catch (error) {
+    console.error("Error checking reservations:", error)
+    return null
   }
+}
 
   const getAvailableTables = async (): Promise<Table[]> => {
     try {
