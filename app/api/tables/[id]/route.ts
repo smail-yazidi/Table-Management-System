@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import dbConnect from "@/lib/db"
 import Table from "@/lib/models/Table"
-
+import Reservation from "@/lib/models/Reservation"
 
 // DELETE /api/tables/[id]
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
@@ -13,9 +13,14 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
       return NextResponse.json({ message: "Table not found" }, { status: 404 })
     }
 
+    // Delete related reservations
+    await Reservation.deleteMany({ tableId: params.id })
+
+    // Delete the table itself
     await Table.findByIdAndDelete(params.id)
-    return NextResponse.json({ message: "Table deleted successfully" })
-  } catch (error) {
-    return NextResponse.json({ error: "Failed to delete table" }, { status: 500 })
+
+    return NextResponse.json({ message: "Table and related reservations deleted successfully" })
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message || "Failed to delete table" }, { status: 500 })
   }
 }
