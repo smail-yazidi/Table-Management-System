@@ -120,14 +120,14 @@ export default function TutorPage() {
       const now = new Date()
       const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000)
 
+
       const reservedTableIds = reservations
         .filter((r: Reservation) => {
-          if (!r.datetime) return false
+          if (!r.datetime || !r.table) return false
           const resTime = new Date(r.datetime)
           return resTime >= oneHourAgo && resTime <= now
         })
         .map((r: Reservation) => r.table._id)
-
       return tables.filter((table: Table) => !reservedTableIds.includes(table._id))
     } catch (error) {
       console.error("Error getting available tables:", error)
