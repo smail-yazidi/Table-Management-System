@@ -6,26 +6,25 @@ import Reservation from "@/lib/models/Reservation"
 
 // DELETE /api/tutors/:id
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
-  await dbConnect()
+  await dbConnect();
 
   try {
-    const tutor = await Tutor.findById(params.id)
+    const tutor = await Tutor.findById(params.id);
     if (!tutor) {
-      return NextResponse.json({ message: "Tutor not found" }, { status: 404 })
+      return NextResponse.json({ message: "Tutor not found" }, { status: 404 });
     }
 
-    // Delete reservations related to tutor
-    await Reservation.deleteMany({ tutorId: params.id })
+    // Delete all reservations linked to this tutor
+    await Reservation.deleteMany({ tutorId: params.id });
 
     // Delete the tutor
-    await Tutor.findByIdAndDelete(params.id)
+    await Tutor.findByIdAndDelete(params.id);
 
-    return NextResponse.json({ message: "Tutor and related reservations deleted" })
+    return NextResponse.json({ message: "Tutor and related reservations deleted" });
   } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 })
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
-
 // PUT /api/tutors/:id
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
   await dbConnect()
