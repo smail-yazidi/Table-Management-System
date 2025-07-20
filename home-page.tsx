@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
 import { API_ENDPOINTS } from "./config/api"
 import API_BASE_URL from "./config/api"
-
+import DELETE_OLD_RESERVATIONS from "./config/api"
 interface Table {
   _id: string
   tableNumber: number
@@ -34,13 +34,13 @@ const HomePage = () => {
       setLoading(false)
     }
   }
-
   useEffect(() => {
     fetchTables()
-    const interval = setInterval(fetchTables, 10000) // Refresh every 10 seconds for live view
+    const interval = setInterval(fetchTables, 10000) // every 10 seconds
     return () => clearInterval(interval)
   }, [])
 
+  // Your existing useEffect for currentTime
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date())
@@ -48,6 +48,28 @@ const HomePage = () => {
     return () => clearInterval(timer)
   }, [])
 
+  // New useEffect for deleting old reservations every 30 seconds
+
+  useEffect(() => {
+    const deleteOldReservations = async () => {
+      try {
+        const res = await fetch(API_ENDPOINTS.DELETE_OLD_RESERVATIONS, {
+          method: 'POST', // or 'DELETE' depending on your API
+        });
+        if (!res.ok) throw new Error('Network response was not ok');
+        const data = await res.json();
+        console.log('Deleted old reservations:', data);
+      } catch (err) {
+        console.error('Error deleting old reservations:', err);
+      }
+    };
+
+    deleteOldReservations(); // call immediately on mount
+
+    const deleteInterval = setInterval(deleteOldReservations, 30000); // every 30 seconds
+
+    return () => clearInterval(deleteInterval);
+  }, []);
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-50 to-orange-100">
@@ -63,8 +85,8 @@ const HomePage = () => {
     <div
       className="min-h-screen relative"
       style={{
-       // backgroundImage: 'url("/floor.png")',
-       backgroundColor:"#f4a261",
+        // backgroundImage: 'url("/floor.png")',
+        backgroundColor: "#f4a261",
         backgroundRepeat: "repeat",
         backgroundSize: "200px 200px",
         backgroundPosition: "top left",
@@ -100,11 +122,10 @@ const HomePage = () => {
             return (
               <Card
                 key={table._id}
-                className={`relative overflow-hidden transition-all duration-300 ${
-                  isReserved
-                    ? "bg-gradient-to-br from-red-50 to-red-100 border-red-200 shadow-red-200/50"
-                    : "bg-gradient-to-br from-green-50 to-green-100 border-green-200 shadow-green-200/50"
-                } shadow-lg`}
+                className={`relative overflow-hidden transition-all duration-300 ${isReserved
+                  ? "bg-gradient-to-br from-red-50 to-red-100 border-red-200 shadow-red-200/50"
+                  : "bg-gradient-to-br from-green-50 to-green-100 border-green-200 shadow-green-200/50"
+                  } shadow-lg`}
               >
                 <div className="relative h-64 sm:h-72">
                   {/* Table Image */}
@@ -120,9 +141,8 @@ const HomePage = () => {
                   {/* Status Badge */}
                   <div className="absolute top-3 right-3">
                     <Badge
-                      className={`${
-                        isReserved ? "bg-red-500 hover:bg-red-600" : "bg-green-500 hover:bg-green-600"
-                      } text-white shadow-lg`}
+                      className={`${isReserved ? "bg-red-500 hover:bg-red-600" : "bg-green-500 hover:bg-green-600"
+                        } text-white shadow-lg`}
                     >
                       {isReserved ? "Reserved" : "Available"}
                     </Badge>
@@ -183,9 +203,8 @@ const HomePage = () => {
                   <div className="flex justify-between items-center">
                     <span className="text-sm font-medium text-gray-700">Table {table.tableNumber}</span>
                     <span
-                      className={`text-xs px-2 py-1 rounded-full ${
-                        isReserved ? "bg-red-200 text-red-800" : "bg-green-200 text-green-800"
-                      }`}
+                      className={`text-xs px-2 py-1 rounded-full ${isReserved ? "bg-red-200 text-red-800" : "bg-green-200 text-green-800"
+                        }`}
                     >
                       {isReserved ? "Occupied" : "Free"}
                     </span>
