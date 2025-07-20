@@ -167,35 +167,42 @@ export default function Dashboard() {
   };
 
 
+
   const updateTutor = async () => {
     if (!editingTutor) return
 
     try {
-      const formData = new FormData()
-      formData.append("firstName", editingTutorData.firstName)
-      formData.append("lastName", editingTutorData.lastName)
-      if (editingTutorImage) formData.append("image", editingTutorImage)
+      const { _id, firstName, lastName } = editingTutor
 
-      await axios.put(`${API_ENDPOINTS.TUTORS}/${editingTutor._id}`, formData)
+      await axios.put(`${API_ENDPOINTS.TUTORS}/${_id}`, {
+        firstName,
+        lastName,
+      })
+
       setEditingTutor(null)
       setEditingTutorData({ firstName: "", lastName: "" })
-      setEditingTutorImage(null)
+      setEditingTutorImage(null) // Optional: remove if not using images
       fetchDashboardData()
     } catch (error) {
       console.error("Error updating tutor:", error)
     }
   }
 
-  const deleteTutor = async (id: string) => {
+
+
+  const deleteTutor = async (tutorId: string) => {
     if (confirm("Are you sure you want to delete this tutor?")) {
       try {
-        await axios.delete(`${API_ENDPOINTS.TUTORS}/${id}`)
+        await axios.delete(`${API_ENDPOINTS.TUTORS}/${tutorId}`)
         fetchDashboardData()
       } catch (error) {
         console.error("Error deleting tutor:", error)
       }
     }
   }
+
+
+
 
   const startEditTutor = (tutor: Tutor) => {
     setEditingTutor(tutor)
@@ -215,16 +222,19 @@ export default function Dashboard() {
     }
   }
 
-  const deleteTable = async (id: string) => {
-    if (confirm("Are you sure you want to delete this table?")) {
-      try {
-        await axios.delete(`${API_ENDPOINTS.TABLES}/${id}`)
-        fetchDashboardData()
-      } catch (error) {
-        console.error("Error deleting table:", error)
-      }
+
+  const deleteTable = async (tableId: string) => {
+    try {
+      await fetch(`/api/tables/${tableId}`, {
+        method: "DELETE",
+      })
+      console.log("Table deleted")
+      // Refresh data here
+    } catch (error) {
+      console.error("Failed to delete table:", error)
     }
   }
+
 
   const formatTime = (dateString: string) => {
     return new Date(dateString).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })

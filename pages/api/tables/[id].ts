@@ -8,12 +8,12 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
   await dbConnect()
 
   try {
-    const deletedTable = await Table.findByIdAndDelete(params.id)
-
-    if (!deletedTable) {
-      return NextResponse.json({ error: "Table not found" }, { status: 404 })
+    const table = await Table.findById(params.id)
+    if (!table) {
+      return NextResponse.json({ message: "Table not found" }, { status: 404 })
     }
 
+    await Table.findByIdAndDelete(params.id)
     return NextResponse.json({ message: "Table deleted successfully" })
   } catch (error) {
     return NextResponse.json({ error: "Failed to delete table" }, { status: 500 })
