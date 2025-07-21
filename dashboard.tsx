@@ -344,7 +344,7 @@ export default function Dashboard() {
 
         {/* Management Tabs */}
         <Tabs defaultValue="tutors" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="tutors">👨‍🏫 Manage Tutors</TabsTrigger>
             <TabsTrigger value="tables">🪑 Manage Tables</TabsTrigger>
           </TabsList>
