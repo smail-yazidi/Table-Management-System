@@ -74,11 +74,11 @@ export default function Dashboard() {
   // Table Management States
   const [newTableNumber, setNewTableNumber] = useState("")
 
+
   useEffect(() => {
     fetchDashboardData()
-    const interval = setInterval(fetchDashboardData, 30000)
-    return () => clearInterval(interval)
   }, [])
+
 
   const fetchDashboardData = async () => {
     try {
@@ -486,61 +486,6 @@ export default function Dashboard() {
                           <Trash2 className="w-4 h-4 mr-1" />
                           Delete
                         </Button>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Recent Activity */}
-          <TabsContent value="activity" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2 text-purple-600">
-                  <Calendar className="w-5 h-5" />
-                  <span>Recent Reservations</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {tutors.map((tutor) => (
-                    <Card key={tutor._id} className="border border-gray-200">
-                      <CardContent className="p-4">
-                        <div className="flex items-center space-x-3 mb-3">
-                          {tutor.image ? (
-                            <img
-                              src={`${API_BASE_URL}${tutor.image}`}
-                              alt={`${tutor.firstName} ${tutor.lastName}`}
-                              className="w-12 h-12 rounded-full"
-                            />
-                          ) : (
-                            <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center">
-                              <Users className="w-6 h-6 text-white" />
-                            </div>
-                          )}
-                          <div>
-                            <p className="font-semibold">
-                              {tutor.firstName} {tutor.lastName}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex space-x-2">
-                          <Button size="sm" variant="outline" onClick={() => startEditTutor(tutor)} className="flex-1">
-                            <Edit className="w-4 h-4 mr-1" />
-                            Edit
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => deleteTutor(tutor._id)}
-                            className="flex-1"
-                          >
-                            <Trash2 className="w-4 h-4 mr-1" />
-                            Delete
-                          </Button>
-                        </div>
                       </CardContent>
                     </Card>
                   ))}
