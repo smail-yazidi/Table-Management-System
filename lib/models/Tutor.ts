@@ -1,4 +1,3 @@
-
 import mongoose from "mongoose"
 
 const TutorSchema = new mongoose.Schema(
@@ -11,4 +10,5 @@ const TutorSchema = new mongoose.Schema(
 )
 
 export default mongoose.models.Tutor || mongoose.model("Tutor", TutorSchema)
+
 
