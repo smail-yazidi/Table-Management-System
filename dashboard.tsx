@@ -2,12 +2,12 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card" // CardDescription added here
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Label } from "@/components/ui/label" // Added Label import
+import { Label } from "@/components/ui/label"
 import {
   Users,
   TableIcon,
@@ -19,13 +19,12 @@ import {
   Plus,
   Trash2,
   Edit,
-  Loader2, // For loading spinners
-  Image as ImageIcon, // Renamed to avoid conflict with HTML <img>
+  Loader2,
+  Image as ImageIcon,
 } from "lucide-react"
 import axios from "axios"
 import { API_ENDPOINTS } from "./config/api"
 // API_BASE_URL is not needed for Vercel Blob URLs directly in <img> src
-// import API_BASE_URL from "./config/api"
 
 interface DashboardStats {
   totalTutors: number
@@ -40,7 +39,7 @@ interface Tutor {
   _id: string
   firstName: string
   lastName: string
-  image?: string | null // Image is a URL string
+  image?: string | null
   createdAt?: string;
   updatedAt?: string;
 }
@@ -74,15 +73,15 @@ export default function Dashboard() {
   // Tutor Management States
   const [newTutor, setNewTutor] = useState({ firstName: "", lastName: "" })
   const [newTutorImage, setNewTutorImage] = useState<File | null>(null)
-  const [imagePreview, setImagePreview] = useState<string | null>(null); // For new tutor image preview
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [loadingAddTutor, setLoadingAddTutor] = useState(false);
   const [addTutorError, setAddTutorError] = useState<string | null>(null);
   const [addTutorSuccess, setAddTutorSuccess] = useState<string | null>(null);
 
   const [editingTutor, setEditingTutor] = useState<Tutor | null>(null)
   const [editingTutorData, setEditingTutorData] = useState({ firstName: "", lastName: "" })
-  const [editingTutorImage, setEditingTutorImage] = useState<File | null>(null) // New file selected for edit
-  const [editingImagePreview, setEditingImagePreview] = useState<string | null>(null); // For editing tutor image preview
+  const [editingTutorImage, setEditingTutorImage] = useState<File | null>(null)
+  const [editingImagePreview, setEditingImagePreview] = useState<string | null>(null);
   const [loadingUpdateTutor, setLoadingUpdateTutor] = useState(false);
   const [updateTutorError, setUpdateTutorError] = useState<string | null>(null);
   const [updateTutorSuccess, setUpdateTutorSuccess] = useState<string | null>(null);
@@ -367,7 +366,7 @@ export default function Dashboard() {
   const deleteTable = async (tableId: string) => {
     if (window.confirm("Are you sure you want to delete this table?")) {
       try {
-        await axios.delete(`${API_ENDPOINTS.TABLES}/${tableId}`) // Corrected to use axios.delete
+        await axios.delete(`${API_ENDPOINTS.TABLES}/${tableId}`)
         console.log("Table deleted")
         fetchDashboardData();
       } catch (error) {
@@ -486,10 +485,9 @@ export default function Dashboard() {
 
         {/* Management Tabs */}
         <Tabs defaultValue="tutors" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 lg:grid-cols-2 mb-6"> {/* Adjusted grid-cols */}
+          <TabsList className="grid w-full grid-cols-2 lg:grid-cols-2 mb-6">
             <TabsTrigger value="tutors">👨‍🏫 Manage Tutors</TabsTrigger>
             <TabsTrigger value="tables">🪑 Manage Tables</TabsTrigger>
-            {/* You might add a "Reservations" tab here if you want to manage them directly */}
           </TabsList>
 
           {/* Tutors Management */}
@@ -594,7 +592,6 @@ export default function Dashboard() {
                         <CardContent className="p-4">
                           <div className="flex items-center space-x-3 mb-3">
                             {tutor.image ? (
-                              // Direct use of Vercel Blob URL
                               <img
                                 src={tutor.image}
                                 alt={`${tutor.firstName} ${tutor.lastName}`}
@@ -771,7 +768,7 @@ export default function Dashboard() {
                   {(editingImagePreview || editingTutor.image) && (
                     <div className="mt-2 text-center">
                       <img
-                        src={editingImagePreview || editingTutor.image || ''} // Show new preview or current image
+                        src={editingImagePreview || editingTutor.image || ''}
                         alt="Image Preview"
                         className="w-24 h-24 object-cover rounded-full mx-auto border-2 border-blue-200"
                       />
