@@ -486,11 +486,14 @@ export default function Dashboard() {
         {/* Management Tabs */}
         <Tabs defaultValue="tutors" className="w-full">
           <TabsList className="grid w-full grid-cols-2 lg:grid-cols-2 mb-6">
-            <TabsTrigger value="tutors">👨‍🏫 Manage Tutors</TabsTrigger>
-            <TabsTrigger value="tables">🪑 Manage Tables</TabsTrigger>
-          </TabsList>
-
-          {/* Tutors Management */}
+            {/* Replaced emojis with Lucide React Icons */}
+            <TabsTrigger value="tutors">
+              <Users className="w-5 h-5 mr-2" /> Manage Tutors
+            </TabsTrigger>
+            <TabsTrigger value="tables">
+              <TableIcon className="w-5 h-5 mr-2" /> Manage Tables
+            </TabsTrigger>
+          </TabsList>          {/* Tutors Management */}
           <TabsContent value="tutors" className="space-y-6">
             {/* Add New Tutor Card */}
             <Card className="rounded-xl shadow-lg border-none bg-gradient-to-br from-white to-blue-50">
