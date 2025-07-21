@@ -87,25 +87,25 @@ export default function TutorPage() {
 
 
   const checkExistingReservation = async (tutorId: string): Promise<Reservation | null> => {
-  try {
-    const response = await axios.get(API_ENDPOINTS.RESERVATIONS)
-    const reservations = response.data
+    try {
+      const response = await axios.get(API_ENDPOINTS.RESERVATIONS)
+      const reservations = response.data
 
-    const now = new Date()
+      const now = new Date()
 
-    // Find any reservation for this tutor whose datetime is in the future (or currently active)
-    const existingReservation = reservations.find((r: Reservation) => {
-      if (!r.datetime || !r.tutor) return false
-      const resTime = new Date(r.datetime)
-      return resTime >= now && r.tutor._id === tutorId
-    })
+      // Find any reservation for this tutor whose datetime is in the future (or currently active)
+      const existingReservation = reservations.find((r: Reservation) => {
+        if (!r.datetime || !r.tutor) return false
+        const resTime = new Date(r.datetime)
+        return resTime >= now && r.tutor._id === tutorId
+      })
 
-    return existingReservation || null
-  } catch (error) {
-    console.error("Error checking reservations:", error)
-    return null
+      return existingReservation || null
+    } catch (error) {
+      console.error("Error checking reservations:", error)
+      return null
+    }
   }
-}
 
   const getAvailableTables = async (): Promise<Table[]> => {
     try {
@@ -135,18 +135,25 @@ export default function TutorPage() {
     }
   }
 
+  // In TutorPage.tsx
+
   const makeReservation = async (tutorId: string, tableId: string): Promise<boolean> => {
     try {
+      // Get the current time for the reservation
+      const now = new Date();
       await axios.post(API_ENDPOINTS.RESERVATIONS, {
         tableId,
         tutorId,
-      })
-      return true
+        datetime: now.toISOString(), // Send the current ISO string datetime
+      });
+      return true;
     } catch (error) {
-      console.error("Error making reservation:", error)
-      return false
+      console.error("Error making reservation:", error);
+      // You might want to update your UI with this error
+      // For example, setError(error.response?.data?.error || "Failed to make reservation.");
+      return false;
     }
-  }
+  };
 
   const handleNameSubmit = async () => {
     if (!fullName.trim()) {
