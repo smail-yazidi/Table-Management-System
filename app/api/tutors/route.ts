@@ -1,8 +1,7 @@
 // app/api/tutors/route.ts
 import { NextRequest, NextResponse } from "next/server"
 import dbConnect from "@/lib/db"
-import { NextRequest, NextResponse } from "next/server";
-import dbConnect from "@/lib/db";
+
 import Tutor from "@/lib/models/Tutor";
 
 // GET /api/tutors
