@@ -1,8 +1,17 @@
-// /app/api/reservations/route.ts
+
 import { NextRequest, NextResponse } from "next/server"
 import dbConnect from "@/lib/db"
 import Reservation from "@/lib/models/Reservation"
 
+export async function GET() {
+  await dbConnect()
+
+  const reservations = await Reservation.find()
+    .populate("tutorId")
+    .populate("tableId")
+
+  return NextResponse.json(reservations, { status: 200 })
+}
 
 export async function POST(req: NextRequest) {
   await dbConnect()
@@ -17,9 +26,8 @@ export async function POST(req: NextRequest) {
   }
 
   const requestedStart = new Date(datetime)
-  const requestedEnd = new Date(requestedStart.getTime() + 60 * 60 * 1000) // 1 hour slot
+  const requestedEnd = new Date(requestedStart.getTime() + 60 * 60 * 1000)
 
-  // Check if tutor already has a reservation that overlaps
   const tutorConflict = await Reservation.findOne({
     tutorId,
     datetime: {
@@ -35,7 +43,6 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  // Check if table is already reserved during that time
   const tableConflict = await Reservation.findOne({
     tableId,
     datetime: {
