@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import axios from "axios"
-import { Clock, User, Book } from "lucide-react"
+import { Clock, User, BookOpenText } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
 import { API_ENDPOINTS } from "./config/api"
@@ -98,7 +98,7 @@ const HomePage = () => {
           <div className="flex flex-col sm:flex-row justify-between items-center">
             <div className="text-center sm:text-left mb-4 sm:mb-0">
               <h1 className="text-2xl sm:text-3xl font-bold text-white flex items-center justify-center sm:justify-start">
-                <Book className="w-8 h-8 mr-3 text-amber-300" />
+                <BookOpenText className="w-8 h-8 mr-3 text-amber-300" />
                 Study Hall - Live View
               </h1>
               <p className="text-amber-100 mt-1">Real-time table availability</p>
@@ -192,7 +192,7 @@ const HomePage = () => {
                   {!isReserved && (
                     <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
                       <div className="bg-green-500/90 backdrop-blur-sm rounded-full p-4 shadow-lg animate-pulse">
-                        <Book className="w-8 h-8 text-white" />
+                        <BookOpenText className="w-8 h-8 text-white" />
                       </div>
                     </div>
                   )}
