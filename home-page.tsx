@@ -179,7 +179,7 @@ const HomePage = () => {
                         </div>
 
                         {/* Tutor Name */}
-                        <div className="text-sm font-semibold text-gray-800 animate-pulse">
+                        <div className="text-sm font-semibold text-gray-800">
                           {table.reservedTutor.firstName} {table.reservedTutor.lastName}
                         </div>
 
