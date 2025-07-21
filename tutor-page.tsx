@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from "react"
@@ -53,6 +52,8 @@ export default function TutorPage() {
   const [selectedTable, setSelectedTable] = useState<Table | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+  // The reservedTableIds state is kept, but its primary use for filtering display
+  // is now directly within the JSX, not for disabling buttons.
   const [reservedTableIds, setReservedTableIds] = useState<string[]>([])
 
   const currentTime = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
@@ -79,16 +80,14 @@ export default function TutorPage() {
         );
       });
 
-      // --- Updated error message here ---
       if (!foundTutor) {
         setError("Tutor not found. Please check you typed the correct full name.");
       }
-      // --- End updated error message ---
 
       return foundTutor || null;
     } catch (error) {
       console.error("Error finding tutor:", error);
-      setError("Failed to connect to tutor database. Please try again."); // More generic error for fetch failure
+      setError("Failed to connect to tutor database. Please try again.");
       return null;
     }
   };
@@ -98,7 +97,8 @@ export default function TutorPage() {
       const response = await axios.get(API_ENDPOINTS.RESERVATIONS);
       const reservations = response.data;
 
-      // Find any reservation for this specific tutor, regardless of its datetime.
+      // This function now simply checks if *any* reservation exists for the tutor,
+      // regardless of its time, as per the latest request.
       const existingReservation = reservations.find((r: Reservation) => {
         return r.tutor && r.tutor._id === tutorId;
       });
@@ -110,7 +110,6 @@ export default function TutorPage() {
       return null;
     }
   };
-
 
   const getAvailableTables = async (): Promise<{ allTables: Table[], reservedTableIds: string[] }> => {
     try {
@@ -129,6 +128,8 @@ export default function TutorPage() {
         .filter((r: Reservation) => {
           if (!r.datetime || !r.table) return false
           const resTime = new Date(r.datetime)
+          // Filter out tables that are currently reserved (within the last hour)
+          // or are about to start in the next hour.
           return resTime > oneHourAgo && resTime < new Date(now.getTime() + 60 * 60 * 1000)
         })
         .map((r: Reservation) => r.table._id)
@@ -140,7 +141,6 @@ export default function TutorPage() {
       return { allTables: [], reservedTableIds: [] }
     }
   }
-
 
   const makeReservation = async (tutorId: string, tableId: string): Promise<boolean> => {
     try {
@@ -170,10 +170,6 @@ export default function TutorPage() {
   };
 
   const handleNameSubmit = async () => {
-    const { allTables, reservedTableIds } = await getAvailableTables()
-    setAvailableTables(allTables)
-    setReservedTableIds(reservedTableIds)
-
     if (!fullName.trim()) {
       setError("Please enter your full name")
       return
@@ -197,11 +193,14 @@ export default function TutorPage() {
       const reservation = await checkExistingReservation(foundTutor._id)
 
       if (reservation) {
+        // If tutor has ANY reservation, go directly to existing-reservation step
         setExistingReservation(reservation)
         setCurrentStep("existing-reservation")
       } else {
-        const tables = await getAvailableTables()
-        setAvailableTables(tables)
+        // Only if no existing reservation, proceed to fetch tables and show table selection
+        const { allTables, reservedTableIds } = await getAvailableTables()
+        setAvailableTables(allTables.filter(table => !reservedTableIds.includes(table._id))) // Filter out reserved tables for display
+        setReservedTableIds(reservedTableIds); // Keep track of all reserved IDs if needed elsewhere
         setCurrentStep("table-selection")
       }
     } catch (err) {
@@ -250,6 +249,7 @@ export default function TutorPage() {
     setAvailableTables([])
     setSelectedTable(null)
     setError("")
+    setReservedTableIds([]); // Reset reserved IDs as well
   }
 
   return (
@@ -368,9 +368,7 @@ export default function TutorPage() {
               <Alert className="border-orange-200 bg-gradient-to-r from-orange-50 to-red-50 animate-pulse">
                 <Clock className="h-4 sm:h-5 w-4 sm:w-5 text-orange-600" />
                 <AlertDescription className="text-orange-800 font-medium text-sm sm:text-base">
-                  {/* --- Updated message here --- */}
                   Tutor already has a reservation around this time 🎯
-                  {/* --- End updated message --- */}
                 </AlertDescription>
               </Alert>
 
@@ -437,6 +435,7 @@ export default function TutorPage() {
                 </Badge>
               </div>
 
+              {/* Filter availableTables to only show truly available ones */}
               {availableTables.length === 0 ? (
                 <Alert className="border-yellow-200 bg-gradient-to-r from-yellow-50 to-orange-50">
                   <Clock className="h-4 sm:h-5 w-4 sm:w-5 text-yellow-600" />
@@ -446,12 +445,11 @@ export default function TutorPage() {
                 </Alert>
               ) : (
                 <div className="grid grid-cols-2 gap-2 sm:gap-4">
-
                   {availableTables.map((table, index) => (
                     <Button
                       key={table._id}
                       onClick={() => handleTableSelection(table)}
-                      disabled={loading || reservedTableIds.includes(table._id)} // ✅ this works!
+                      disabled={loading} // Only disable if loading, not if reserved (since reserved are filtered out)
                       variant="outline"
                       className={`h-16 sm:h-24 flex flex-col items-center justify-center border-2 rounded-xl shadow-lg transform hover:scale-105 transition-all duration-300 bg-gradient-to-br from-white to-green-50 hover:from-green-100 hover:to-blue-100 border-green-300 hover:border-green-400 animate-fade-in text-xs sm:text-base`}
                       style={{ animationDelay: `${index * 100}ms` }}
@@ -460,12 +458,8 @@ export default function TutorPage() {
                       <span className="font-semibold text-green-700">
                         Table {table.tableNumber}
                       </span>
-                      {reservedTableIds.includes(table._id) && (
-                        <span className="text-xs text-red-500 mt-1">Reserved</span>
-                      )}
                     </Button>
                   ))}
-
                 </div>
               )}
 
