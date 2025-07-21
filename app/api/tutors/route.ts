@@ -17,6 +17,7 @@ export async function GET(req: NextRequest) {
 }
 
 // POST /api/tutors
+// POST /api/tutors
 export async function POST(req: NextRequest) {
   await dbConnect();
 
@@ -24,7 +25,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const firstName = body.firstName?.trim();
     const lastName = body.lastName?.trim();
-    const image = body.image?.trim() || null;
+    const image = body.image?.trim() || null; // This expects a URL string
 
     console.log("📥 Incoming tutor data:", { firstName, lastName, image });
 
@@ -47,3 +48,4 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+
