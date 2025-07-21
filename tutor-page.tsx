@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from "react"
@@ -52,9 +53,7 @@ export default function TutorPage() {
   const [selectedTable, setSelectedTable] = useState<Table | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
-  // The reservedTableIds state is kept, but its primary use for filtering display
-  // is now directly within the JSX, not for disabling buttons.
-  const [reservedTableIds, setReservedTableIds] = useState<string[]>([])
+  // removed reservedTableIds state as it's now handled directly in getAvailableTables filter
 
   const currentTime = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
 
@@ -98,7 +97,7 @@ export default function TutorPage() {
       const reservations = response.data;
 
       // This function now simply checks if *any* reservation exists for the tutor,
-      // regardless of its time, as per the latest request.
+      // regardless of its time.
       const existingReservation = reservations.find((r: Reservation) => {
         return r.tutor && r.tutor._id === tutorId;
       });
@@ -111,20 +110,20 @@ export default function TutorPage() {
     }
   };
 
-  const getAvailableTables = async (): Promise<{ allTables: Table[], reservedTableIds: string[] }> => {
+  const getAvailableTables = async (): Promise<Table[]> => {
     try {
       const [tablesResponse, reservationsResponse] = await Promise.all([
         axios.get(API_ENDPOINTS.TABLES),
         axios.get(API_ENDPOINTS.RESERVATIONS),
       ])
 
-      const tables = tablesResponse.data
-      const reservations = reservationsResponse.data
+      const allTables: Table[] = tablesResponse.data
+      const allReservations: Reservation[] = reservationsResponse.data
 
       const now = new Date()
       const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000)
 
-      const reservedTableIds = reservations
+      const reservedTableIds = allReservations
         .filter((r: Reservation) => {
           if (!r.datetime || !r.table) return false
           const resTime = new Date(r.datetime)
@@ -134,11 +133,12 @@ export default function TutorPage() {
         })
         .map((r: Reservation) => r.table._id)
 
-      return { allTables: tables, reservedTableIds }
+      // Return only tables that are NOT in the reservedTableIds list
+      return allTables.filter((table: Table) => !reservedTableIds.includes(table._id))
     } catch (error) {
       console.error("Error getting available tables:", error)
-      setError("Failed to fetch tables.")
-      return { allTables: [], reservedTableIds: [] }
+      setError("Failed to fetch available tables.");
+      return []
     }
   }
 
@@ -197,10 +197,9 @@ export default function TutorPage() {
         setExistingReservation(reservation)
         setCurrentStep("existing-reservation")
       } else {
-        // Only if no existing reservation, proceed to fetch tables and show table selection
-        const { allTables, reservedTableIds } = await getAvailableTables()
-        setAvailableTables(allTables.filter(table => !reservedTableIds.includes(table._id))) // Filter out reserved tables for display
-        setReservedTableIds(reservedTableIds); // Keep track of all reserved IDs if needed elsewhere
+        // Only if no existing reservation, fetch and display *only* available tables
+        const tables = await getAvailableTables() // This now returns only available tables
+        setAvailableTables(tables)
         setCurrentStep("table-selection")
       }
     } catch (err) {
@@ -249,7 +248,7 @@ export default function TutorPage() {
     setAvailableTables([])
     setSelectedTable(null)
     setError("")
-    setReservedTableIds([]); // Reset reserved IDs as well
+    // No need to reset reservedTableIds here as it's not a state variable anymore
   }
 
   return (
@@ -435,7 +434,6 @@ export default function TutorPage() {
                 </Badge>
               </div>
 
-              {/* Filter availableTables to only show truly available ones */}
               {availableTables.length === 0 ? (
                 <Alert className="border-yellow-200 bg-gradient-to-r from-yellow-50 to-orange-50">
                   <Clock className="h-4 sm:h-5 w-4 sm:w-5 text-yellow-600" />
@@ -445,11 +443,13 @@ export default function TutorPage() {
                 </Alert>
               ) : (
                 <div className="grid grid-cols-2 gap-2 sm:gap-4">
+                  {/* Now availableTables state only contains truly available tables,
+                      so no need for includes(table._id) check in disabled prop or span. */}
                   {availableTables.map((table, index) => (
                     <Button
                       key={table._id}
                       onClick={() => handleTableSelection(table)}
-                      disabled={loading} // Only disable if loading, not if reserved (since reserved are filtered out)
+                      disabled={loading}
                       variant="outline"
                       className={`h-16 sm:h-24 flex flex-col items-center justify-center border-2 rounded-xl shadow-lg transform hover:scale-105 transition-all duration-300 bg-gradient-to-br from-white to-green-50 hover:from-green-100 hover:to-blue-100 border-green-300 hover:border-green-400 animate-fade-in text-xs sm:text-base`}
                       style={{ animationDelay: `${index * 100}ms` }}
