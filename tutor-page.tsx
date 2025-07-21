@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from "react"
@@ -80,12 +81,10 @@ export default function TutorPage() {
       return foundTutor || null;
     } catch (error) {
       console.error("Error finding tutor:", error);
+      setError("Failed to find tutor. Please try again."); // Display error to user
       return null;
     }
   };
-
-
-
 
   const checkExistingReservation = async (tutorId: string): Promise<Reservation | null> => {
     try {
@@ -99,10 +98,10 @@ export default function TutorPage() {
       return existingReservation || null;
     } catch (error) {
       console.error("Error checking reservations:", error);
+      setError("Failed to check for existing reservation."); // Display error to user
       return null;
     }
   };
-
 
   const getAvailableTables = async (): Promise<Table[]> => {
     try {
@@ -117,40 +116,55 @@ export default function TutorPage() {
       const now = new Date()
       const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000)
 
-
       const reservedTableIds = reservations
         .filter((r: Reservation) => {
           if (!r.datetime || !r.table) return false
           const resTime = new Date(r.datetime)
+          // Filter out tables that are currently reserved (within the last hour)
           return resTime >= oneHourAgo && resTime <= now
         })
         .map((r: Reservation) => r.table._id)
+
       return tables.filter((table: Table) => !reservedTableIds.includes(table._id))
     } catch (error) {
       console.error("Error getting available tables:", error)
+      setError("Failed to fetch available tables."); // Display error to user
       return []
     }
   }
 
-  // In TutorPage.tsx
-
+  // --- MODIFIED makeReservation function ---
   const makeReservation = async (tutorId: string, tableId: string): Promise<boolean> => {
     try {
-      // Get the current time for the reservation
       const now = new Date();
-      await axios.post(API_ENDPOINTS.RESERVATIONS, {
+      const datetimeISO = now.toISOString(); // Get ISO string for datetime
+
+      // Log the data being sent for debugging
+      console.log("Attempting to make reservation with:", {
         tableId,
         tutorId,
-        datetime: now.toISOString(), // Send the current ISO string datetime
+        datetime: datetimeISO,
       });
+
+      const response = await axios.post(API_ENDPOINTS.RESERVATIONS, {
+        tableId,
+        tutorId,
+        datetime: datetimeISO,
+      });
+
+      console.log("Reservation successful:", response.data);
       return true;
-    } catch (error) {
+    } catch (error: any) { // Use 'any' for error type for easier access to response
       console.error("Error making reservation:", error);
-      // You might want to update your UI with this error
-      // For example, setError(error.response?.data?.error || "Failed to make reservation.");
+
+      // Extract and set the specific error message from the server response
+      const serverErrorMessage = error.response?.data?.error || "Failed to make reservation. Please try again.";
+      setError(serverErrorMessage);
       return false;
     }
   };
+  // --- END MODIFIED makeReservation function ---
+
 
   const handleNameSubmit = async () => {
     if (!fullName.trim()) {
@@ -159,16 +173,15 @@ export default function TutorPage() {
     }
 
     setLoading(true)
-    setError("")
+    setError("") // Clear previous errors
     setCurrentStep("loading")
 
     try {
       const foundTutor = await findTutorByName(fullName.trim())
 
       if (!foundTutor) {
-        setError("Tutor not found. Please check your name and try again.")
+        // Error already set by findTutorByName
         setCurrentStep("name-input")
-        setLoading(false)
         return
       }
 
@@ -185,32 +198,43 @@ export default function TutorPage() {
         setCurrentStep("table-selection")
       }
     } catch (err) {
-      setError("Something went wrong. Please try again.")
-      setCurrentStep("name-input")
+      // This catch block might be redundant if sub-functions set error, but good for general fallback
+      console.error("Error in handleNameSubmit flow:", err);
+      setError("An unexpected error occurred during check-in. Please try again.");
+      setCurrentStep("name-input");
     } finally {
       setLoading(false)
     }
   }
 
+  // --- MODIFIED handleTableSelection function ---
   const handleTableSelection = async (table: Table) => {
-    if (!tutor) return
+    if (!tutor || !table) { // Ensure both tutor and table are available
+      setError("Tutor or selected table is missing.");
+      return;
+    }
 
-    setLoading(true)
-    setSelectedTable(table)
+    setLoading(true);
+    setSelectedTable(table);
+    setError(""); // Clear previous errors
 
     try {
-      const success = await makeReservation(tutor._id, table._id)
+      const success = await makeReservation(tutor._id, table._id);
       if (success) {
-        setCurrentStep("success")
+        setCurrentStep("success");
       } else {
-        setError("Failed to make reservation. Please try again.")
+        // makeReservation already sets the error state, so no need to set it here again
+        // unless you want a generic fallback message.
+        // setError("Failed to make reservation. Please try again.");
       }
     } catch (err) {
-      setError("Failed to make reservation. Please try again.")
+      console.error("Error in handleTableSelection flow:", err);
+      setError("An unexpected error occurred during table selection. Please try again.");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
+  // --- END MODIFIED handleTableSelection function ---
 
   const goHome = () => {
     window.location.href = "/"
@@ -548,3 +572,4 @@ export default function TutorPage() {
     </div>
   )
 }
+
