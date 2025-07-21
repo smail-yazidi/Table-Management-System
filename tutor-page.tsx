@@ -40,9 +40,10 @@ interface Table {
 // --- CORRECTED Reservation interface ---
 interface Reservation {
   _id: string
-  table: { _id: string; tableNumber: number } // Assuming table is always populated
-  // Changed 'tutor' to 'tutorId' to match your backend response
-  // And specified that tutorId is an object with _id, and can be null
+  // Changed 'table' to 'tableId' to match your backend response
+  // Assuming tableId is always populated to an object with _id and tableNumber
+  tableId: { _id: string; tableNumber: number } | null
+  // tutorId is also an object based on your latest debug logs
   tutorId: { _id: string; firstName: string; lastName: string; image?: string } | null
   datetime: string
 }
@@ -97,15 +98,14 @@ export default function TutorPage() {
     try {
       console.log(`DEBUG: checkExistingReservation called for tutorId: ${tutorId}`);
       const response = await axios.get(API_ENDPOINTS.RESERVATIONS);
-      const reservations: Reservation[] = response.data; // Ensure type is Reservation[]
+      const reservations: Reservation[] = response.data; // Explicitly type the response data
 
       console.log("DEBUG: All reservations fetched:", reservations);
 
       const existingReservation = reservations.find((r: Reservation, index) => {
         console.log(`DEBUG: Checking reservation ${index}:`, r);
 
-        // --- CORRECTED LOGIC HERE ---
-        // Check if r.tutorId exists, is an object, and has an _id property
+        // Access r.tutorId directly as per your backend response
         if (r.tutorId && typeof r.tutorId === 'object' && '_id' in r.tutorId) {
           const currentReservationTutorId = r.tutorId._id;
           console.log(`DEBUG: Reservation ${index} tutor ID (from tutorId object): ${currentReservationTutorId}`);
@@ -116,7 +116,6 @@ export default function TutorPage() {
           console.log(`DEBUG: Reservation ${index} has no valid 'tutorId' object or it's not populated correctly.`);
           return false;
         }
-        // --- END CORRECTED LOGIC ---
       });
 
       console.log("DEBUG: Result of find (existingReservation):", existingReservation);
@@ -143,13 +142,14 @@ export default function TutorPage() {
 
       const reservedTableIds = allReservations
         .filter((r: Reservation) => {
-          if (!r.datetime || !r.table) return false
+          if (!r.datetime || !r.tableId) return false // Changed r.table to r.tableId
           const resTime = new Date(r.datetime)
           // Filter out tables that are currently reserved (within the last hour)
           // or are about to start in the next hour.
           return resTime > oneHourAgo && resTime < new Date(now.getTime() + 60 * 60 * 1000)
         })
-        .map((r: Reservation) => r.table._id)
+        .map((r: Reservation) => r.tableId?._id) // Access _id from tableId object
+        .filter(Boolean) as string[]; // Filter out any null/undefined and assert as string array
 
       // Return only tables that are NOT in the reservedTableIds list
       return allTables.filter((table: Table) => !reservedTableIds.includes(table._id))
@@ -399,8 +399,10 @@ export default function TutorPage() {
                 >
                   <TableIcon className="w-3 sm:w-4 h-3 sm:h-4 mr-1" />
                   Your Table: {
-                    // Safely access tableNumber, assuming existingReservation.table is always an object
-                    (existingReservation.table as { tableNumber: number }).tableNumber
+                    // --- CORRECTED ACCESS HERE ---
+                    existingReservation.tableId && typeof existingReservation.tableId === 'object'
+                      ? existingReservation.tableId.tableNumber
+                      : 'N/A' // Fallback if tableId is null or not an object
                   }
                 </Badge>
               </div>
