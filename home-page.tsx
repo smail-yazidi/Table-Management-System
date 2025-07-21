@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import axios from "axios"
-import { Clock, User, Coffee } from "lucide-react"
+import { Clock, User, Book } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
 import { API_ENDPOINTS } from "./config/api"
@@ -192,7 +192,7 @@ const HomePage = () => {
                   {!isReserved && (
                     <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
                       <div className="bg-green-500/90 backdrop-blur-sm rounded-full p-4 shadow-lg animate-pulse">
-                        <Coffee className="w-8 h-8 text-white" />
+                        <Book className="w-8 h-8 text-white" />
                       </div>
                     </div>
                   )}
@@ -201,13 +201,7 @@ const HomePage = () => {
                 {/* Table Footer */}
                 <div className={`p-3 ${isReserved ? "bg-red-100" : "bg-green-100"}`}>
                   <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium text-gray-700">Table {table.tableNumber}</span>
-                    <span
-                      className={`text-xs px-2 py-1 rounded-full ${isReserved ? "bg-red-200 text-red-800" : "bg-green-200 text-green-800"
-                        }`}
-                    >
-                      {isReserved ? "Occupied" : "Free"}
-                    </span>
+
                   </div>
                 </div>
               </Card>
