@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useEffect, useState } from "react"
@@ -6,8 +7,9 @@ import { Clock, User, BookOpenText } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
 import { API_ENDPOINTS } from "./config/api"
-import API_BASE_URL from "./config/api"
-import DELETE_OLD_RESERVATIONS from "./config/api"
+// Removed: import API_BASE_URL from "./config/api" // Not needed for Vercel Blob URLs
+// Removed: import DELETE_OLD_RESERVATIONS from "./config/api" // This is a route, not a direct import
+
 interface Table {
   _id: string
   tableNumber: number
@@ -15,7 +17,7 @@ interface Table {
     _id: string
     firstName: string
     lastName: string
-    image?: string
+    image?: string | null // Ensure it can be null
   } | null
 }
 
@@ -34,6 +36,7 @@ const HomePage = () => {
       setLoading(false)
     }
   }
+
   useEffect(() => {
     fetchTables()
     const interval = setInterval(fetchTables, 10000) // every 10 seconds
@@ -49,7 +52,6 @@ const HomePage = () => {
   }, [])
 
   // New useEffect for deleting old reservations every 30 seconds
-
   useEffect(() => {
     const deleteOldReservations = async () => {
       try {
@@ -70,6 +72,7 @@ const HomePage = () => {
 
     return () => clearInterval(deleteInterval);
   }, []);
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-50 to-orange-100">
@@ -162,10 +165,11 @@ const HomePage = () => {
                         {/* Tutor Avatar */}
                         <div className="mb-3">
                           {table.reservedTutor.image ? (
+                            // --- FIX APPLIED HERE: Direct use of Vercel Blob URL ---
                             <img
-                              src={`${API_BASE_URL}${table.reservedTutor.image}`}
+                              src={table.reservedTutor.image} // Use the URL directly
                               alt={`${table.reservedTutor.firstName} ${table.reservedTutor.lastName}`}
-                              className="w-12 h-12 rounded-full mx-auto border-2 border-amber-300 shadow-md"
+                              className="w-12 h-12 rounded-full mx-auto border-2 border-amber-300 shadow-md object-cover" // Added object-cover
                             />
                           ) : (
                             <div className="w-12 h-12 rounded-full mx-auto bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center border-2 border-amber-300 shadow-md">
@@ -198,10 +202,10 @@ const HomePage = () => {
                   )}
                 </div>
 
-                {/* Table Footer */}
+                {/* Table Footer (Empty in your provided code, keeping as is) */}
                 <div className={`p-3 ${isReserved ? "bg-red-100" : "bg-green-100"}`}>
                   <div className="flex justify-between items-center">
-
+                    {/* Content for footer if needed */}
                   </div>
                 </div>
               </Card>
@@ -227,7 +231,7 @@ const HomePage = () => {
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-purple-600">
-                {Math.round((tables.filter((t) => t.reservedTutor).length / tables.length) * 100) || 0}%
+                {tables.length > 0 ? Math.round((tables.filter((t) => t.reservedTutor).length / tables.length) * 100) : 0}%
               </div>
               <div className="text-sm text-gray-600">Occupancy</div>
             </div>
@@ -246,3 +250,4 @@ const HomePage = () => {
 }
 
 export default HomePage
+
