@@ -446,21 +446,26 @@ export default function TutorPage() {
                 </Alert>
               ) : (
                 <div className="grid grid-cols-2 gap-2 sm:gap-4">
+
                   {availableTables.map((table, index) => (
                     <Button
-                                        variant="outline"
+                      key={table._id}
+                      onClick={() => handleTableSelection(table)}
+                      disabled={loading || reservedTableIds.includes(table._id)} // ✅ this works!
+                      variant="outline"
                       className={`h-16 sm:h-24 flex flex-col items-center justify-center border-2 rounded-xl shadow-lg transform hover:scale-105 transition-all duration-300 bg-gradient-to-br from-white to-green-50 hover:from-green-100 hover:to-blue-100 border-green-300 hover:border-green-400 animate-fade-in text-xs sm:text-base`}
                       style={{ animationDelay: `${index * 100}ms` }}
-                                                              <Button
-  key={table._id}
-  onClick={() => handleTableSelection(table)}
-  disabled={loading || reservedTableIds.includes(table._id)} // <-- disable if reserved
-
                     >
                       <TableIcon className="w-5 sm:w-8 h-5 sm:h-8 mb-1 sm:mb-2 text-green-600" />
-                      <span className="font-semibold text-green-700">Table {table.tableNumber}</span>
+                      <span className="font-semibold text-green-700">
+                        Table {table.tableNumber}
+                      </span>
+                      {reservedTableIds.includes(table._id) && (
+                        <span className="text-xs text-red-500 mt-1">Reserved</span>
+                      )}
                     </Button>
                   ))}
+
                 </div>
               )}
 
