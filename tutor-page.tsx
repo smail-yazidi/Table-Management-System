@@ -101,13 +101,14 @@ export default function TutorPage() {
       const existingReservation = reservations.find((r: Reservation) => {
         return r.tutor && r.tutor._id === tutorId;
       });
-
+      console.log(existingReservation)
       return existingReservation || null;
     } catch (error) {
       console.error("Error checking reservations:", error);
       setError("Failed to check for existing reservation.");
       return null;
     }
+
   };
 
   const getAvailableTables = async (): Promise<Table[]> => {
