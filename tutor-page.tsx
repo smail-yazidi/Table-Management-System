@@ -78,10 +78,16 @@ export default function TutorPage() {
         );
       });
 
+      // --- Updated error message here ---
+      if (!foundTutor) {
+        setError("Tutor not found. Please check you typed the correct full name.");
+      }
+      // --- End updated error message ---
+
       return foundTutor || null;
     } catch (error) {
       console.error("Error finding tutor:", error);
-      setError("Failed to find tutor. Please try again."); // Display error to user
+      setError("Failed to connect to tutor database. Please try again."); // More generic error for fetch failure
       return null;
     }
   };
@@ -91,6 +97,7 @@ export default function TutorPage() {
       const response = await axios.get(API_ENDPOINTS.RESERVATIONS);
       const reservations = response.data;
 
+      // Find any reservation for this specific tutor, regardless of its datetime.
       const existingReservation = reservations.find((r: Reservation) => {
         return r.tutor && r.tutor._id === tutorId;
       });
@@ -98,7 +105,7 @@ export default function TutorPage() {
       return existingReservation || null;
     } catch (error) {
       console.error("Error checking reservations:", error);
-      setError("Failed to check for existing reservation."); // Display error to user
+      setError("Failed to check for existing reservation.");
       return null;
     }
   };
@@ -121,25 +128,23 @@ export default function TutorPage() {
           if (!r.datetime || !r.table) return false
           const resTime = new Date(r.datetime)
           // Filter out tables that are currently reserved (within the last hour)
-          return resTime >= oneHourAgo && resTime <= now
+          return resTime > oneHourAgo && resTime < new Date(now.getTime() + 60 * 60 * 1000); // Check for reservations active now or starting very soon
         })
         .map((r: Reservation) => r.table._id)
 
       return tables.filter((table: Table) => !reservedTableIds.includes(table._id))
     } catch (error) {
       console.error("Error getting available tables:", error)
-      setError("Failed to fetch available tables."); // Display error to user
+      setError("Failed to fetch available tables.");
       return []
     }
   }
 
-  // --- MODIFIED makeReservation function ---
   const makeReservation = async (tutorId: string, tableId: string): Promise<boolean> => {
     try {
       const now = new Date();
-      const datetimeISO = now.toISOString(); // Get ISO string for datetime
+      const datetimeISO = now.toISOString();
 
-      // Log the data being sent for debugging
       console.log("Attempting to make reservation with:", {
         tableId,
         tutorId,
@@ -154,17 +159,13 @@ export default function TutorPage() {
 
       console.log("Reservation successful:", response.data);
       return true;
-    } catch (error: any) { // Use 'any' for error type for easier access to response
+    } catch (error: any) {
       console.error("Error making reservation:", error);
-
-      // Extract and set the specific error message from the server response
       const serverErrorMessage = error.response?.data?.error || "Failed to make reservation. Please try again.";
       setError(serverErrorMessage);
       return false;
     }
   };
-  // --- END MODIFIED makeReservation function ---
-
 
   const handleNameSubmit = async () => {
     if (!fullName.trim()) {
@@ -173,14 +174,14 @@ export default function TutorPage() {
     }
 
     setLoading(true)
-    setError("") // Clear previous errors
+    setError("")
     setCurrentStep("loading")
 
     try {
       const foundTutor = await findTutorByName(fullName.trim())
 
       if (!foundTutor) {
-        // Error already set by findTutorByName
+        // Error message already set by findTutorByName
         setCurrentStep("name-input")
         return
       }
@@ -198,7 +199,6 @@ export default function TutorPage() {
         setCurrentStep("table-selection")
       }
     } catch (err) {
-      // This catch block might be redundant if sub-functions set error, but good for general fallback
       console.error("Error in handleNameSubmit flow:", err);
       setError("An unexpected error occurred during check-in. Please try again.");
       setCurrentStep("name-input");
@@ -207,25 +207,22 @@ export default function TutorPage() {
     }
   }
 
-  // --- MODIFIED handleTableSelection function ---
   const handleTableSelection = async (table: Table) => {
-    if (!tutor || !table) { // Ensure both tutor and table are available
+    if (!tutor || !table) {
       setError("Tutor or selected table is missing.");
       return;
     }
 
     setLoading(true);
     setSelectedTable(table);
-    setError(""); // Clear previous errors
+    setError("");
 
     try {
       const success = await makeReservation(tutor._id, table._id);
       if (success) {
         setCurrentStep("success");
       } else {
-        // makeReservation already sets the error state, so no need to set it here again
-        // unless you want a generic fallback message.
-        // setError("Failed to make reservation. Please try again.");
+        // Error is already set by makeReservation
       }
     } catch (err) {
       console.error("Error in handleTableSelection flow:", err);
@@ -234,7 +231,6 @@ export default function TutorPage() {
       setLoading(false);
     }
   };
-  // --- END MODIFIED handleTableSelection function ---
 
   const goHome = () => {
     window.location.href = "/"
@@ -366,7 +362,9 @@ export default function TutorPage() {
               <Alert className="border-orange-200 bg-gradient-to-r from-orange-50 to-red-50 animate-pulse">
                 <Clock className="h-4 sm:h-5 w-4 sm:w-5 text-orange-600" />
                 <AlertDescription className="text-orange-800 font-medium text-sm sm:text-base">
-                  You have a reservation in this hour at Table {existingReservation.table.tableNumber} 🎯
+                  {/* --- Updated message here --- */}
+                  Tutor already has a reservation around this time 🎯
+                  {/* --- End updated message --- */}
                 </AlertDescription>
               </Alert>
 
