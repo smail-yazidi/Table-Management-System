@@ -1,47 +1,52 @@
 // app/api/tutors/route.ts
 import { NextRequest, NextResponse } from "next/server"
 import dbConnect from "@/lib/db"
-import Tutor from "@/lib/models/Tutor"
+import { NextRequest, NextResponse } from "next/server";
+import dbConnect from "@/lib/db";
+import Tutor from "@/lib/models/Tutor";
 
 // GET /api/tutors
 export async function GET(req: NextRequest) {
-  await dbConnect()
+  await dbConnect();
 
   try {
-    const tutors = await Tutor.find()
-    return NextResponse.json(tutors)
+    const tutors = await Tutor.find();
+    return NextResponse.json(tutors);
   } catch (error) {
-    console.error("❌ Failed to fetch tutors:", error)
-    return NextResponse.json({ error: "Failed to fetch tutors" }, { status: 500 })
+    console.error("❌ Failed to fetch tutors:", error);
+    return NextResponse.json({ error: "Failed to fetch tutors" }, { status: 500 });
   }
 }
 
 // POST /api/tutors
 export async function POST(req: NextRequest) {
-  await dbConnect()
+  await dbConnect();
 
   try {
-    const body = await req.json()
-    const { firstName, lastName, image } = body
+    const body = await req.json();
+    const firstName = body.firstName?.trim();
+    const lastName = body.lastName?.trim();
+    const image = body.image?.trim() || null;
 
-    console.log("📥 Incoming tutor data:", { firstName, lastName, image })
+    console.log("📥 Incoming tutor data:", { firstName, lastName, image });
 
     if (!firstName || !lastName) {
       return NextResponse.json(
         { error: "firstName and lastName are required" },
         { status: 400 }
-      )
+      );
     }
 
-    const newTutor = await Tutor.create({ firstName, lastName, image: image || null })
-    console.log("✅ Tutor saved to MongoDB:", newTutor)
+    const newTutor = await Tutor.create({ firstName, lastName, image });
+    console.log("✅ Tutor saved to MongoDB:", newTutor);
 
-    return NextResponse.json(newTutor, { status: 201 })
+    return NextResponse.json(newTutor, { status: 201 });
   } catch (error: any) {
-    console.error("❌ Error adding tutor:", error)
+    console.error("❌ Error adding tutor:", error);
     return NextResponse.json(
       { error: error.message || "Internal Server Error" },
       { status: 500 }
-    )
+    );
   }
 }
+

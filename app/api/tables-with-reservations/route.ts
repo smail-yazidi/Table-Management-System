@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server"
 import dbConnect from "@/lib/db"
 import Table from "@/lib/models/Table"
 import Reservation from "@/lib/models/Reservation"
-
+import Tutor from "@/lib/models/Tutor"
 export async function GET(req: NextRequest) {
   await dbConnect()
 
