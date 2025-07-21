@@ -37,10 +37,12 @@ interface Table {
   tableNumber: number
 }
 
+// Updated Reservation interface to explicitly handle 'tutor' as string or object
 interface Reservation {
   _id: string
   table: { _id: string; tableNumber: number }
-  tutor: { _id: string; firstName: string; lastName: string; image?: string }
+  // 'tutor' can be a string (the ID) OR the populated Tutor object OR null
+  tutor: string | { _id: string; firstName: string; lastName: string; image?: string } | null
   datetime: string
 }
 
@@ -93,22 +95,47 @@ export default function TutorPage() {
 
   const checkExistingReservation = async (tutorId: string): Promise<Reservation | null> => {
     try {
+      console.log(`DEBUG: checkExistingReservation called for tutorId: ${tutorId}`);
       const response = await axios.get(API_ENDPOINTS.RESERVATIONS);
-      const reservations = response.data;
+      const reservations: Reservation[] = response.data; // Explicitly type the response data
 
-      // This function now simply checks if *any* reservation exists for the tutor,
-      // regardless of its time.
-      const existingReservation = reservations.find((r: Reservation) => {
-        return r.tutor && r.tutor._id === tutorId;
+      console.log("DEBUG: All reservations fetched:", reservations);
+
+      const existingReservation = reservations.find((r: Reservation, index) => {
+        console.log(`DEBUG: Checking reservation ${index}:`, r);
+
+        if (!r.tutor) {
+          console.log(`DEBUG: Reservation ${index} has no tutor field.`);
+          return false; // No tutor data in this reservation
+        }
+
+        let currentReservationTutorId: string | null = null;
+
+        // Determine the actual tutor ID from the reservation object
+        if (typeof r.tutor === 'string') {
+          currentReservationTutorId = r.tutor; // It's an unpopulated ID string
+          console.log(`DEBUG: Reservation ${index} tutor is string ID: ${currentReservationTutorId}`);
+        } else if (typeof r.tutor === 'object' && r.tutor !== null && '_id' in r.tutor) {
+          currentReservationTutorId = r.tutor._id; // It's a populated object
+          console.log(`DEBUG: Reservation ${index} tutor is object ID: ${currentReservationTutorId}`);
+        } else {
+          console.log(`DEBUG: Reservation ${index} tutor field has unexpected type:`, typeof r.tutor, r.tutor);
+          return false;
+        }
+
+        // Compare the extracted ID with the tutorId we're looking for
+        const isMatch = currentReservationTutorId === tutorId;
+        console.log(`DEBUG: Comparing ${currentReservationTutorId} === ${tutorId} ? Result: ${isMatch}`);
+        return isMatch;
       });
-      console.log(existingReservation)
+
+      console.log("DEBUG: Result of find (existingReservation):", existingReservation);
       return existingReservation || null;
     } catch (error) {
       console.error("Error checking reservations:", error);
       setError("Failed to check for existing reservation.");
       return null;
     }
-
   };
 
   const getAvailableTables = async (): Promise<Table[]> => {
@@ -381,7 +408,10 @@ export default function TutorPage() {
                   className="text-xs sm:text-sm py-1 sm:py-2 px-2 sm:px-4 bg-gradient-to-r from-green-100 to-blue-100 border-green-300"
                 >
                   <TableIcon className="w-3 sm:w-4 h-3 sm:h-4 mr-1" />
-                  Your Table: {existingReservation.table.tableNumber}
+                  Your Table: {
+                    // Safely access tableNumber, assuming existingReservation.table is always an object
+                    (existingReservation.table as { tableNumber: number }).tableNumber
+                  }
                 </Badge>
               </div>
 
