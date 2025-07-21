@@ -53,6 +53,7 @@ export default function TutorPage() {
   const [selectedTable, setSelectedTable] = useState<Table | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+  const [reservedTableIds, setReservedTableIds] = useState<string[]>([])
 
   const currentTime = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
 
@@ -110,7 +111,8 @@ export default function TutorPage() {
     }
   };
 
-  const getAvailableTables = async (): Promise<Table[]> => {
+
+  const getAvailableTables = async (): Promise<{ allTables: Table[], reservedTableIds: string[] }> => {
     try {
       const [tablesResponse, reservationsResponse] = await Promise.all([
         axios.get(API_ENDPOINTS.TABLES),
@@ -127,18 +129,18 @@ export default function TutorPage() {
         .filter((r: Reservation) => {
           if (!r.datetime || !r.table) return false
           const resTime = new Date(r.datetime)
-          // Filter out tables that are currently reserved (within the last hour)
-          return resTime > oneHourAgo && resTime < new Date(now.getTime() + 60 * 60 * 1000); // Check for reservations active now or starting very soon
+          return resTime > oneHourAgo && resTime < new Date(now.getTime() + 60 * 60 * 1000)
         })
         .map((r: Reservation) => r.table._id)
 
-      return tables.filter((table: Table) => !reservedTableIds.includes(table._id))
+      return { allTables: tables, reservedTableIds }
     } catch (error) {
       console.error("Error getting available tables:", error)
-      setError("Failed to fetch available tables.");
-      return []
+      setError("Failed to fetch tables.")
+      return { allTables: [], reservedTableIds: [] }
     }
   }
+
 
   const makeReservation = async (tutorId: string, tableId: string): Promise<boolean> => {
     try {
@@ -168,6 +170,10 @@ export default function TutorPage() {
   };
 
   const handleNameSubmit = async () => {
+    const { allTables, reservedTableIds } = await getAvailableTables()
+    setAvailableTables(allTables)
+    setReservedTableIds(reservedTableIds)
+
     if (!fullName.trim()) {
       setError("Please enter your full name")
       return
@@ -442,12 +448,14 @@ export default function TutorPage() {
                 <div className="grid grid-cols-2 gap-2 sm:gap-4">
                   {availableTables.map((table, index) => (
                     <Button
-                      key={table._id}
-                      variant="outline"
+                                        variant="outline"
                       className={`h-16 sm:h-24 flex flex-col items-center justify-center border-2 rounded-xl shadow-lg transform hover:scale-105 transition-all duration-300 bg-gradient-to-br from-white to-green-50 hover:from-green-100 hover:to-blue-100 border-green-300 hover:border-green-400 animate-fade-in text-xs sm:text-base`}
                       style={{ animationDelay: `${index * 100}ms` }}
-                      onClick={() => handleTableSelection(table)}
-                      disabled={loading}
+                                                              <Button
+  key={table._id}
+  onClick={() => handleTableSelection(table)}
+  disabled={loading || reservedTableIds.includes(table._id)} // <-- disable if reserved
+
                     >
                       <TableIcon className="w-5 sm:w-8 h-5 sm:h-8 mb-1 sm:mb-2 text-green-600" />
                       <span className="font-semibold text-green-700">Table {table.tableNumber}</span>
