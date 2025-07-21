@@ -98,7 +98,7 @@ const HomePage = () => {
           <div className="flex flex-col sm:flex-row justify-between items-center">
             <div className="text-center sm:text-left mb-4 sm:mb-0">
               <h1 className="text-2xl sm:text-3xl font-bold text-white flex items-center justify-center sm:justify-start">
-                <Coffee className="w-8 h-8 mr-3 text-amber-300" />
+                <Book className="w-8 h-8 mr-3 text-amber-300" />
                 Study Hall - Live View
               </h1>
               <p className="text-amber-100 mt-1">Real-time table availability</p>
