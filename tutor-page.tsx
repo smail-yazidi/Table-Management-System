@@ -37,12 +37,13 @@ interface Table {
   tableNumber: number
 }
 
-// Updated Reservation interface to explicitly handle 'tutor' as string or object
+// --- CORRECTED Reservation interface ---
 interface Reservation {
   _id: string
-  table: { _id: string; tableNumber: number }
-  // 'tutor' can be a string (the ID) OR the populated Tutor object OR null
-  tutor: string | { _id: string; firstName: string; lastName: string; image?: string } | null
+  table: { _id: string; tableNumber: number } // Assuming table is always populated
+  // Changed 'tutor' to 'tutorId' to match your backend response
+  // And specified that tutorId is an object with _id, and can be null
+  tutorId: { _id: string; firstName: string; lastName: string; image?: string } | null
   datetime: string
 }
 
@@ -55,7 +56,6 @@ export default function TutorPage() {
   const [selectedTable, setSelectedTable] = useState<Table | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
-  // removed reservedTableIds state as it's now handled directly in getAvailableTables filter
 
   const currentTime = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
 
@@ -97,36 +97,26 @@ export default function TutorPage() {
     try {
       console.log(`DEBUG: checkExistingReservation called for tutorId: ${tutorId}`);
       const response = await axios.get(API_ENDPOINTS.RESERVATIONS);
-      const reservations: Reservation[] = response.data; // Explicitly type the response data
+      const reservations: Reservation[] = response.data; // Ensure type is Reservation[]
 
       console.log("DEBUG: All reservations fetched:", reservations);
 
       const existingReservation = reservations.find((r: Reservation, index) => {
         console.log(`DEBUG: Checking reservation ${index}:`, r);
 
-        if (!r.tutor) {
-          console.log(`DEBUG: Reservation ${index} has no tutor field.`);
-          return false; // No tutor data in this reservation
-        }
-
-        let currentReservationTutorId: string | null = null;
-
-        // Determine the actual tutor ID from the reservation object
-        if (typeof r.tutor === 'string') {
-          currentReservationTutorId = r.tutor; // It's an unpopulated ID string
-          console.log(`DEBUG: Reservation ${index} tutor is string ID: ${currentReservationTutorId}`);
-        } else if (typeof r.tutor === 'object' && r.tutor !== null && '_id' in r.tutor) {
-          currentReservationTutorId = r.tutor._id; // It's a populated object
-          console.log(`DEBUG: Reservation ${index} tutor is object ID: ${currentReservationTutorId}`);
+        // --- CORRECTED LOGIC HERE ---
+        // Check if r.tutorId exists, is an object, and has an _id property
+        if (r.tutorId && typeof r.tutorId === 'object' && '_id' in r.tutorId) {
+          const currentReservationTutorId = r.tutorId._id;
+          console.log(`DEBUG: Reservation ${index} tutor ID (from tutorId object): ${currentReservationTutorId}`);
+          const isMatch = currentReservationTutorId === tutorId;
+          console.log(`DEBUG: Comparing ${currentReservationTutorId} === ${tutorId} ? Result: ${isMatch}`);
+          return isMatch;
         } else {
-          console.log(`DEBUG: Reservation ${index} tutor field has unexpected type:`, typeof r.tutor, r.tutor);
+          console.log(`DEBUG: Reservation ${index} has no valid 'tutorId' object or it's not populated correctly.`);
           return false;
         }
-
-        // Compare the extracted ID with the tutorId we're looking for
-        const isMatch = currentReservationTutorId === tutorId;
-        console.log(`DEBUG: Comparing ${currentReservationTutorId} === ${tutorId} ? Result: ${isMatch}`);
-        return isMatch;
+        // --- END CORRECTED LOGIC ---
       });
 
       console.log("DEBUG: Result of find (existingReservation):", existingReservation);
