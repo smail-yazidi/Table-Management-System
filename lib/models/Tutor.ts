@@ -1,4 +1,5 @@
-import mongoose from "mongoose"
+// lib/models/Tutor.ts
+import mongoose from "mongoose";
 
 const TutorSchema = new mongoose.Schema(
   {
@@ -7,8 +8,6 @@ const TutorSchema = new mongoose.Schema(
     image: { type: String, default: null },
   },
   { timestamps: true }
-)
+);
 
-export default mongoose.models.Tutor || mongoose.model("Tutor", TutorSchema)
-
-
+export default mongoose.models.Tutor || mongoose.model("Tutor", TutorSchema);

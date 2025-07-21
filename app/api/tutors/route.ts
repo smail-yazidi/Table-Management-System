@@ -1,8 +1,7 @@
 // app/api/tutors/route.ts
-import { NextRequest, NextResponse } from "next/server"
-import dbConnect from "@/lib/db"
-
-import Tutor from "@/lib/models/Tutor";
+import { NextRequest, NextResponse } from "next/server";
+import dbConnect from "@/lib/db";
+import Tutor from "@/lib/models/Tutor"; // Explicitly imported here, but loadMongooseModels will ensure it.
 
 // GET /api/tutors
 export async function GET(req: NextRequest) {
@@ -48,4 +47,3 @@ export async function POST(req: NextRequest) {
     );
   }
 }
-

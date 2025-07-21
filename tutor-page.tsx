@@ -86,33 +86,14 @@ export default function TutorPage() {
 
 
 
+
   const checkExistingReservation = async (tutorId: string): Promise<Reservation | null> => {
     try {
       const response = await axios.get(API_ENDPOINTS.RESERVATIONS);
       const reservations = response.data;
 
-      const now = new Date();
-      // Define the window for an active reservation:
-      // From 1 hour ago up to 1 hour from now.
-      // This broadly covers a reservation that might have just started
-      // or is about to start.
-      const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000); // 1 hour before 'now'
-      const oneHourFromNow = new Date(now.getTime() + 60 * 60 * 1000); // 1 hour after 'now'
-
       const existingReservation = reservations.find((r: Reservation) => {
-        if (!r.datetime || !r.tutor) return false;
-
-        const resTime = new Date(r.datetime); // The exact time the reservation was made/scheduled
-
-        // Check if the reservation belongs to this tutor
-        if (r.tutor._id !== tutorId) return false;
-
-        // Check if this reservation's scheduled time (resTime)
-        // falls within the current one-hour active window relative to 'now'.
-        // A reservation is considered active if its 'resTime' is:
-        // - within the last hour (meaning it's ongoing)
-        // - or within the next hour (meaning it's upcoming/just about to start)
-        return resTime > oneHourAgo && resTime < oneHourFromNow;
+        return r.tutor && r.tutor._id === tutorId;
       });
 
       return existingReservation || null;
@@ -121,6 +102,7 @@ export default function TutorPage() {
       return null;
     }
   };
+
 
   const getAvailableTables = async (): Promise<Table[]> => {
     try {
