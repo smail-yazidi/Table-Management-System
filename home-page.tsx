@@ -169,10 +169,10 @@ const HomePage = () => {
                             <img
                               src={table.reservedTutor.image} // Use the URL directly
                               alt={`${table.reservedTutor.firstName} ${table.reservedTutor.lastName}`}
-                              className="w-12 h-12 rounded-full mx-auto border-2 border-amber-300 shadow-md object-cover" // Added object-cover
+                              className="w-16 h-16 rounded-full mx-auto border-2 border-amber-300 shadow-md object-cover" // Added object-cover
                             />
                           ) : (
-                            <div className="w-12 h-12 rounded-full mx-auto bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center border-2 border-amber-300 shadow-md">
+                            <div className="w-16 h-16 rounded-full mx-auto bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center border-2 border-amber-300 shadow-md">
                               <User className="w-6 h-6 text-white" />
                             </div>
                           )}
