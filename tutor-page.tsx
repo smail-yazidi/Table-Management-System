@@ -248,7 +248,6 @@ export default function TutorPage() {
     setAvailableTables([])
     setSelectedTable(null)
     setError("")
-    // No need to reset reservedTableIds here as it's not a state variable anymore
   }
 
   return (
@@ -262,7 +261,7 @@ export default function TutorPage() {
       </div>
 
       <div className="w-full max-w-sm sm:max-w-md relative z-10">
-        {/* Welcome Step */}
+        {/* Use a switch-like structure for exclusive rendering */}
         {currentStep === "welcome" && (
           <Card className="text-center border-0 shadow-2xl bg-gradient-to-br from-white to-blue-50 animate-fade-in">
             <CardHeader className="pb-6 sm:pb-8">
@@ -284,7 +283,6 @@ export default function TutorPage() {
           </Card>
         )}
 
-        {/* Loading Step */}
         {currentStep === "loading" && (
           <Card className="text-center border-0 shadow-2xl bg-gradient-to-br from-white to-indigo-50">
             <CardHeader className="pb-6 sm:pb-8">
@@ -299,7 +297,6 @@ export default function TutorPage() {
           </Card>
         )}
 
-        {/* Name Input Step */}
         {currentStep === "name-input" && (
           <Card className="border-0 shadow-2xl bg-gradient-to-br from-white to-green-50 animate-slide-up">
             <CardHeader className="pb-4">
@@ -352,7 +349,6 @@ export default function TutorPage() {
           </Card>
         )}
 
-        {/* Existing Reservation Step */}
         {currentStep === "existing-reservation" && tutor && existingReservation && (
           <Card className="border-0 shadow-2xl bg-gradient-to-br from-white to-orange-50 animate-slide-up">
             <CardHeader className="pb-4">
@@ -409,7 +405,6 @@ export default function TutorPage() {
           </Card>
         )}
 
-        {/* Table Selection Step */}
         {currentStep === "table-selection" && tutor && (
           <Card className="border-0 shadow-2xl bg-gradient-to-br from-white to-purple-50 animate-slide-up">
             <CardHeader className="pb-4">
@@ -443,8 +438,6 @@ export default function TutorPage() {
                 </Alert>
               ) : (
                 <div className="grid grid-cols-2 gap-2 sm:gap-4">
-                  {/* Now availableTables state only contains truly available tables,
-                      so no need for includes(table._id) check in disabled prop or span. */}
                   {availableTables.map((table, index) => (
                     <Button
                       key={table._id}
@@ -481,7 +474,6 @@ export default function TutorPage() {
           </Card>
         )}
 
-        {/* Success Step */}
         {currentStep === "success" && tutor && selectedTable && (
           <Card className="border-0 shadow-2xl bg-gradient-to-br from-white to-green-50 animate-bounce-in">
             <CardHeader className="pb-4">
