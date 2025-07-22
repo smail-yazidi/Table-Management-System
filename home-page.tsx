@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useEffect, useState } from "react"
@@ -7,8 +6,6 @@ import { Clock, User, BookOpenText } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
 import { API_ENDPOINTS } from "./config/api"
-// Removed: import API_BASE_URL from "./config/api" // Not needed for Vercel Blob URLs
-// Removed: import DELETE_OLD_RESERVATIONS from "./config/api" // This is a route, not a direct import
 
 interface Table {
   _id: string
@@ -84,11 +81,31 @@ const HomePage = () => {
     )
   }
 
+  // --- MODIFICATION START ---
+  // Sort tables: reserved tables first, then available tables.
+  // Within reserved or available, maintain original order (or sort by tableNumber if preferred).
+  const sortedTables = [...tables].sort((a, b) => {
+    const isAReserved = Boolean(a.reservedTutor);
+    const isBReserved = Boolean(b.reservedTutor);
+
+    // If A is reserved and B is not, A comes first (-1)
+    if (isAReserved && !isBReserved) {
+      return -1;
+    }
+    // If B is reserved and A is not, B comes first (1)
+    if (!isAReserved && isBReserved) {
+      return 1;
+    }
+    // If both are reserved or both are available, sort by table number (optional)
+    return a.tableNumber - b.tableNumber;
+  });
+  // --- MODIFICATION END ---
+
+
   return (
     <div
       className="min-h-screen relative"
       style={{
-        // backgroundImage: 'url("/floor.png")',
         backgroundColor: "#f4a261",
         backgroundRepeat: "repeat",
         backgroundSize: "200px 200px",
@@ -119,7 +136,10 @@ const HomePage = () => {
       {/* Tables Grid */}
       <div className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {tables.map((table) => {
+          {/* --- MODIFICATION START --- */}
+          {/* Use sortedTables instead of tables */}
+          {sortedTables.map((table) => {
+            {/* --- MODIFICATION END --- */ }
             const isReserved = Boolean(table.reservedTutor)
 
             return (
@@ -165,11 +185,10 @@ const HomePage = () => {
                         {/* Tutor Avatar */}
                         <div className="mb-3">
                           {table.reservedTutor.image ? (
-                            // --- FIX APPLIED HERE: Direct use of Vercel Blob URL ---
                             <img
-                              src={table.reservedTutor.image} // Use the URL directly
+                              src={table.reservedTutor.image}
                               alt={`${table.reservedTutor.firstName} ${table.reservedTutor.lastName}`}
-                              className="w-16 h-16 rounded-full mx-auto border-2 border-amber-300 shadow-md object-cover" // Added object-cover
+                              className="w-16 h-16 rounded-full mx-auto border-2 border-amber-300 shadow-md object-cover"
                             />
                           ) : (
                             <div className="w-16 h-16 rounded-full mx-auto bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center border-2 border-amber-300 shadow-md">
@@ -250,4 +269,3 @@ const HomePage = () => {
 }
 
 export default HomePage
-
