@@ -67,18 +67,31 @@ export default function TutorPage() {
     }
   }, [currentStep])
 
+
   const findTutorByName = async (fullName: string): Promise<Tutor | null> => {
     try {
       const response = await axios.get(API_ENDPOINTS.TUTORS);
       const tutors = response.data;
-      const [firstName, lastName] = fullName.toLowerCase().split(" ");
+
+      const nameParts = fullName.toLowerCase().split(" ").filter(Boolean);
+      if (nameParts.length !== 2) {
+        setError("Please enter exactly two names (first and last).");
+        return null;
+      }
+
+      const [name1, name2] = nameParts;
 
       const foundTutor = tutors.find((tutor: Tutor) => {
+        if (typeof tutor.firstName !== "string" || typeof tutor.lastName !== "string") {
+          return false;
+        }
+
+        const first = tutor.firstName.toLowerCase();
+        const last = tutor.lastName.toLowerCase();
+
         return (
-          typeof tutor.firstName === "string" &&
-          typeof tutor.lastName === "string" &&
-          tutor.firstName.toLowerCase() === firstName &&
-          tutor.lastName.toLowerCase() === lastName
+          (first === name1 && last === name2) ||
+          (first === name2 && last === name1)
         );
       });
 
@@ -93,6 +106,7 @@ export default function TutorPage() {
       return null;
     }
   };
+
 
   const checkExistingReservation = async (tutorId: string): Promise<Reservation | null> => {
     try {
