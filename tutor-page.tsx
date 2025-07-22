@@ -346,7 +346,7 @@ export default function TutorPage() {
               <div className="relative">
                 <Input
                   type="text"
-                  placeholder="e.g. smail yazidi"
+                  placeholder="Full Name"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   onKeyPress={(e) => e.key === "Enter" && handleNameSubmit()}
