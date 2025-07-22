@@ -18,7 +18,7 @@ import {
   Star,
   Sparkles,
   Coffee,
-  BookOpen,
+  BookOpen, BookOpenText
 } from "lucide-react"
 import axios from "axios"
 import { API_ENDPOINTS } from "./config/api"
@@ -307,7 +307,7 @@ export default function TutorPage() {
                 Welcome to the reservation system ✨
               </CardDescription>
               <div className="flex justify-center space-x-2 mt-4">
-                <Coffee className="w-5 sm:w-6 h-5 sm:h-6 text-amber-500 animate-bounce" />
+                <BookOpenText className="w-5 sm:w-6 h-5 sm:h-6 text-amber-500 animate-bounce" />
                 <BookOpen className="w-5 sm:w-6 h-5 sm:h-6 text-green-500 animate-bounce delay-200" />
                 <Star className="w-5 sm:w-6 h-5 sm:h-6 text-yellow-500 animate-bounce delay-400" />
               </div>
