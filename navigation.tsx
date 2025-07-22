@@ -57,7 +57,7 @@ export default function Navigation() {
               <div className="w-10 h-10 bg-gradient-to-br from-amber-400 to-orange-500 rounded-lg flex items-center justify-center">
                 <Home className="w-6 h-6 text-white" />
               </div>
-              <span className="text-xl font-bold text-gray-800">Study Hall System</span>
+              <span className="text-xl font-bold text-gray-800">CLE</span>
             </div>
 
             {/* Desktop Navigation */}
@@ -66,11 +66,10 @@ export default function Navigation() {
                 <Button
                   key={item.id}
                   onClick={() => setCurrentPage(item.id as any)}
-                  className={`px-6 py-2 rounded-lg transition-all duration-200 ${
-                    currentPage === item.id
-                      ? `bg-gradient-to-r ${item.color} text-white shadow-lg`
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  }`}
+                  className={`px-6 py-2 rounded-lg transition-all duration-200 ${currentPage === item.id
+                    ? `bg-gradient-to-r ${item.color} text-white shadow-lg`
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    }`}
                   title={item.description}
                 >
                   <item.icon className="w-4 h-4 mr-2" />
@@ -96,11 +95,10 @@ export default function Navigation() {
                       setCurrentPage(item.id as any)
                       setMobileMenuOpen(false)
                     }}
-                    className={`w-full justify-start px-4 py-3 rounded-lg transition-all duration-200 ${
-                      currentPage === item.id
-                        ? `bg-gradient-to-r ${item.color} text-white`
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                    }`}
+                    className={`w-full justify-start px-4 py-3 rounded-lg transition-all duration-200 ${currentPage === item.id
+                      ? `bg-gradient-to-r ${item.color} text-white`
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                      }`}
                   >
                     <item.icon className="w-5 h-5 mr-3" />
                     <div className="text-left">
