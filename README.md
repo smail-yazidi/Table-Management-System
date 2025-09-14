@@ -6,6 +6,12 @@ A modern, real-time table reservation system designed for study halls, libraries
 
 **[View Live Application](https://table-management-system-five.vercel.app/)**
 
+## 📱 Screenshots
+![Application Interface](public/img/2.png)
+*Caption: Main application interface showing live table status*
+![Application Interface](public/img/1.png)
+
+
 ## 📖 Overview
 
 This system provides a comprehensive solution for managing table reservations with three main interfaces:
@@ -52,10 +58,6 @@ This system provides a comprehensive solution for managing table reservations wi
 - **File Storage**: Vercel Blob (for tutor profile images)
 - **HTTP Client**: Axios
 
-## 📱 Screenshots
-![Application Interface](public/img/2.png)
-*Caption: Main application interface showing live table status*
-![Application Interface](public/img/1.png)
 
 
 
