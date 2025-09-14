@@ -5,7 +5,7 @@ import axios from "axios"
 import { Clock, User, BookOpenText } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
-import { API_ENDPOINTS } from "./config/api"
+import { API_ENDPOINTS } from "../config/api"
 
 interface Table {
   _id: string

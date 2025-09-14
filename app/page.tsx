@@ -1,9 +1,9 @@
 "use client"
 
 import { useState } from "react"
-import ImprovedTutorPage from "../improved-tutor-page"
-import Dashboard from "../dashboard"
-import Navigation from "../navigation"
+import ImprovedTutorPage from "@/components/improved-tutor-page"
+import Dashboard from "@/components/dashboard"
+import Navigation from "@/components/navigation"
 
 export default function Page() {
   const [currentPage, setCurrentPage] = useState<"home" | "tutor" | "dashboard">("home")

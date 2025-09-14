@@ -23,7 +23,7 @@ import {
   Image as ImageIcon,
 } from "lucide-react"
 import axios from "axios"
-import { API_ENDPOINTS } from "./config/api"
+import { API_ENDPOINTS } from "../config/api"
 // API_BASE_URL is not needed for Vercel Blob URLs directly in <img> src
 
 interface DashboardStats {

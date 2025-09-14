@@ -3,8 +3,8 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Home, User, Settings, Menu, X } from "lucide-react"
-import HomePage from "./home-page"
-import TutorPage from "./tutor-page"
+import HomePage from "@/components/home-page"
+import TutorPage from "@/components/tutor-page"
 import Dashboard from "./dashboard"
 
 export default function Navigation() {

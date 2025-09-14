@@ -1,6 +1,6 @@
+
 "use client"
-import { API_ENDPOINTS } from "./config/api"
-import API_BASE_URL from "./config/api"
+
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -18,9 +18,10 @@ import {
   Star,
   Sparkles,
   Coffee,
-  BookOpen,
+  BookOpen, BookOpenText
 } from "lucide-react"
 import axios from "axios"
+import { API_ENDPOINTS } from "../config/api"
 
 type Step = "welcome" | "name-input" | "loading" | "existing-reservation" | "table-selection" | "success"
 
@@ -36,14 +37,18 @@ interface Table {
   tableNumber: number
 }
 
+// --- CORRECTED Reservation interface ---
 interface Reservation {
   _id: string
-  table: { _id: string; tableNumber: number }
-  tutor: { _id: string; firstName: string; lastName: string; image?: string }
+  // Changed 'table' to 'tableId' to match your backend response
+  // Assuming tableId is always populated to an object with _id and tableNumber
+  tableId: { _id: string; tableNumber: number } | null
+  // tutorId is also an object based on your latest debug logs
+  tutorId: { _id: string; firstName: string; lastName: string; image?: string } | null
   datetime: string
 }
 
-export default function ImprovedTutorPage() {
+export default function TutorPage() {
   const [currentStep, setCurrentStep] = useState<Step>("welcome")
   const [fullName, setFullName] = useState("")
   const [tutor, setTutor] = useState<Tutor | null>(null)
@@ -62,89 +67,140 @@ export default function ImprovedTutorPage() {
     }
   }, [currentStep])
 
+
   const findTutorByName = async (fullName: string): Promise<Tutor | null> => {
     try {
-   const response = await axios.get(API_ENDPOINTS.TUTORS)
+      const response = await axios.get(API_ENDPOINTS.TUTORS);
+      const tutors = response.data;
 
-      const tutors = response.data
-      const [firstName, lastName] = fullName.toLowerCase().split(" ")
+      const nameParts = fullName.toLowerCase().split(" ").filter(Boolean);
+      if (nameParts.length !== 2) {
+        setError("Please enter exactly two names (first and last).");
+        return null;
+      }
 
-      const foundTutor = tutors.find(
-        (tutor: Tutor) => tutor.firstName.toLowerCase() === firstName && tutor.lastName.toLowerCase() === lastName,
-      )
+      const [name1, name2] = nameParts;
 
-      return foundTutor || null
+      const foundTutor = tutors.find((tutor: Tutor) => {
+        if (typeof tutor.firstName !== "string" || typeof tutor.lastName !== "string") {
+          return false;
+        }
+
+        const first = tutor.firstName.toLowerCase();
+        const last = tutor.lastName.toLowerCase();
+
+        return (
+          (first === name1 && last === name2) ||
+          (first === name2 && last === name1)
+        );
+      });
+
+      if (!foundTutor) {
+        setError("Tutor not found. Please check you typed the correct full name.");
+      }
+
+      return foundTutor || null;
     } catch (error) {
-      console.error("Error finding tutor:", error)
-      return null
+      console.error("Error finding tutor:", error);
+      setError("Failed to connect to tutor database. Please try again.");
+      return null;
     }
-  }
+  };
+
 
   const checkExistingReservation = async (tutorId: string): Promise<Reservation | null> => {
     try {
-   const response = await axios.get(API_ENDPOINTS.RESERVATIONS)
+      console.log(`DEBUG: checkExistingReservation called for tutorId: ${tutorId}`);
+      const response = await axios.get(API_ENDPOINTS.RESERVATIONS);
+      const reservations: Reservation[] = response.data; // Explicitly type the response data
 
-      const reservations = response.data
+      console.log("DEBUG: All reservations fetched:", reservations);
 
-      const now = new Date()
-      const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000)
+      const existingReservation = reservations.find((r: Reservation, index) => {
+        console.log(`DEBUG: Checking reservation ${index}:`, r);
 
-      const existingReservation = reservations.find((r: Reservation) => {
-        if (!r.datetime || !r.tutor) return false
-        const resTime = new Date(r.datetime)
-        return resTime >= oneHourAgo && resTime <= now && r.tutor._id === tutorId
-      })
+        // Access r.tutorId directly as per your backend response
+        if (r.tutorId && typeof r.tutorId === 'object' && '_id' in r.tutorId) {
+          const currentReservationTutorId = r.tutorId._id;
+          console.log(`DEBUG: Reservation ${index} tutor ID (from tutorId object): ${currentReservationTutorId}`);
+          const isMatch = currentReservationTutorId === tutorId;
+          console.log(`DEBUG: Comparing ${currentReservationTutorId} === ${tutorId} ? Result: ${isMatch}`);
+          return isMatch;
+        } else {
+          console.log(`DEBUG: Reservation ${index} has no valid 'tutorId' object or it's not populated correctly.`);
+          return false;
+        }
+      });
 
-      return existingReservation || null
+      console.log("DEBUG: Result of find (existingReservation):", existingReservation);
+      return existingReservation || null;
     } catch (error) {
-      console.error("Error checking reservations:", error)
-      return null
+      console.error("Error checking reservations:", error);
+      setError("Failed to check for existing reservation.");
+      return null;
     }
-  }
+  };
 
   const getAvailableTables = async (): Promise<Table[]> => {
     try {
-   const [tablesResponse, reservationsResponse] = await Promise.all([
-  axios.get(API_ENDPOINTS.TABLES),
-  axios.get(API_ENDPOINTS.RESERVATIONS),
-])
+      const [tablesResponse, reservationsResponse] = await Promise.all([
+        axios.get(API_ENDPOINTS.TABLES),
+        axios.get(API_ENDPOINTS.RESERVATIONS),
+      ])
 
-
-      const tables = tablesResponse.data
-      const reservations = reservationsResponse.data
+      const allTables: Table[] = tablesResponse.data
+      const allReservations: Reservation[] = reservationsResponse.data
 
       const now = new Date()
       const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000)
 
-      const reservedTableIds = reservations
+      const reservedTableIds = allReservations
         .filter((r: Reservation) => {
-          if (!r.datetime) return false
+          if (!r.datetime || !r.tableId) return false // Changed r.table to r.tableId
           const resTime = new Date(r.datetime)
-          return resTime >= oneHourAgo && resTime <= now
+          // Filter out tables that are currently reserved (within the last hour)
+          // or are about to start in the next hour.
+          return resTime > oneHourAgo && resTime < new Date(now.getTime() + 60 * 60 * 1000)
         })
-        .map((r: Reservation) => r.table._id)
+        .map((r: Reservation) => r.tableId?._id) // Access _id from tableId object
+        .filter(Boolean) as string[]; // Filter out any null/undefined and assert as string array
 
-      return tables.filter((table: Table) => !reservedTableIds.includes(table._id))
+      // Return only tables that are NOT in the reservedTableIds list
+      return allTables.filter((table: Table) => !reservedTableIds.includes(table._id))
     } catch (error) {
       console.error("Error getting available tables:", error)
+      setError("Failed to fetch available tables.");
       return []
     }
   }
 
   const makeReservation = async (tutorId: string, tableId: string): Promise<boolean> => {
     try {
-  await axios.post(API_ENDPOINTS.RESERVATIONS, {
-  tableId,
-  tutorId,
-})
+      const now = new Date();
+      const datetimeISO = now.toISOString();
 
-      return true
-    } catch (error) {
-      console.error("Error making reservation:", error)
-      return false
+      console.log("Attempting to make reservation with:", {
+        tableId,
+        tutorId,
+        datetime: datetimeISO,
+      });
+
+      const response = await axios.post(API_ENDPOINTS.RESERVATIONS, {
+        tableId,
+        tutorId,
+        datetime: datetimeISO,
+      });
+
+      console.log("Reservation successful:", response.data);
+      return true;
+    } catch (error: any) {
+      console.error("Error making reservation:", error);
+      const serverErrorMessage = error.response?.data?.error || "Failed to make reservation. Please try again.";
+      setError(serverErrorMessage);
+      return false;
     }
-  }
-/* sssf */
+  };
+
   const handleNameSubmit = async () => {
     if (!fullName.trim()) {
       setError("Please enter your full name")
@@ -159,9 +215,8 @@ export default function ImprovedTutorPage() {
       const foundTutor = await findTutorByName(fullName.trim())
 
       if (!foundTutor) {
-        setError("Tutor not found. Please check your name and try again.")
+        // Error message already set by findTutorByName
         setCurrentStep("name-input")
-        setLoading(false)
         return
       }
 
@@ -170,40 +225,48 @@ export default function ImprovedTutorPage() {
       const reservation = await checkExistingReservation(foundTutor._id)
 
       if (reservation) {
+        // If tutor has ANY reservation, go directly to existing-reservation step
         setExistingReservation(reservation)
         setCurrentStep("existing-reservation")
       } else {
-        const tables = await getAvailableTables()
+        // Only if no existing reservation, fetch and display *only* available tables
+        const tables = await getAvailableTables() // This now returns only available tables
         setAvailableTables(tables)
         setCurrentStep("table-selection")
       }
     } catch (err) {
-      setError("Something went wrong. Please try again.")
-      setCurrentStep("name-input")
+      console.error("Error in handleNameSubmit flow:", err);
+      setError("An unexpected error occurred during check-in. Please try again.");
+      setCurrentStep("name-input");
     } finally {
       setLoading(false)
     }
   }
 
   const handleTableSelection = async (table: Table) => {
-    if (!tutor) return
+    if (!tutor || !table) {
+      setError("Tutor or selected table is missing.");
+      return;
+    }
 
-    setLoading(true)
-    setSelectedTable(table)
+    setLoading(true);
+    setSelectedTable(table);
+    setError("");
 
     try {
-      const success = await makeReservation(tutor._id, table._id)
+      const success = await makeReservation(tutor._id, table._id);
       if (success) {
-        setCurrentStep("success")
+        setCurrentStep("success");
       } else {
-        setError("Failed to make reservation. Please try again.")
+        // Error is already set by makeReservation
       }
     } catch (err) {
-      setError("Failed to make reservation. Please try again.")
+      console.error("Error in handleTableSelection flow:", err);
+      setError("An unexpected error occurred during table selection. Please try again.");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const goHome = () => {
     window.location.href = "/"
@@ -230,7 +293,7 @@ export default function ImprovedTutorPage() {
       </div>
 
       <div className="w-full max-w-sm sm:max-w-md relative z-10">
-        {/* Welcome Step */}
+        {/* Use a switch-like structure for exclusive rendering */}
         {currentStep === "welcome" && (
           <Card className="text-center border-0 shadow-2xl bg-gradient-to-br from-white to-blue-50 animate-fade-in">
             <CardHeader className="pb-6 sm:pb-8">
@@ -238,13 +301,13 @@ export default function ImprovedTutorPage() {
                 <Sparkles className="w-8 sm:w-10 h-8 sm:h-10 text-white animate-pulse" />
               </div>
               <CardTitle className="text-2xl sm:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent animate-pulse">
-                Hello!
+                Hello Tutor! 👋
               </CardTitle>
               <CardDescription className="text-base sm:text-lg text-gray-600 mt-2">
                 Welcome to the reservation system ✨
               </CardDescription>
               <div className="flex justify-center space-x-2 mt-4">
-                <Coffee className="w-5 sm:w-6 h-5 sm:h-6 text-amber-500 animate-bounce" />
+                <BookOpenText className="w-5 sm:w-6 h-5 sm:h-6 text-amber-500 animate-bounce" />
                 <BookOpen className="w-5 sm:w-6 h-5 sm:h-6 text-green-500 animate-bounce delay-200" />
                 <Star className="w-5 sm:w-6 h-5 sm:h-6 text-yellow-500 animate-bounce delay-400" />
               </div>
@@ -252,7 +315,6 @@ export default function ImprovedTutorPage() {
           </Card>
         )}
 
-        {/* Loading Step */}
         {currentStep === "loading" && (
           <Card className="text-center border-0 shadow-2xl bg-gradient-to-br from-white to-indigo-50">
             <CardHeader className="pb-6 sm:pb-8">
@@ -260,14 +322,13 @@ export default function ImprovedTutorPage() {
                 <Search className="w-8 sm:w-10 h-8 sm:h-10 text-white" />
               </div>
               <CardTitle className="text-xl sm:text-2xl font-bold text-indigo-600 animate-pulse">
-                Searching...
+                Checking your information...
               </CardTitle>
-              <CardDescription className="text-gray-600">Looking up your information</CardDescription>
+              <CardDescription className="text-gray-600">Please wait a moment</CardDescription>
             </CardHeader>
           </Card>
         )}
 
-        {/* Name Input Step */}
         {currentStep === "name-input" && (
           <Card className="border-0 shadow-2xl bg-gradient-to-br from-white to-green-50 animate-slide-up">
             <CardHeader className="pb-4">
@@ -278,7 +339,7 @@ export default function ImprovedTutorPage() {
                 Enter Your Full Name
               </CardTitle>
               <CardDescription className="text-center text-sm sm:text-base text-gray-600">
-                Please type your first and last name to continue 📝
+                Please type your first and last name to check in 📝
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4 sm:space-y-6">
@@ -312,7 +373,7 @@ export default function ImprovedTutorPage() {
                 ) : (
                   <div className="flex items-center">
                     <Search className="w-4 sm:w-5 h-4 sm:h-5 mr-2" />
-                    Continue
+                    Check In
                   </div>
                 )}
               </Button>
@@ -320,7 +381,6 @@ export default function ImprovedTutorPage() {
           </Card>
         )}
 
-        {/* Existing Reservation Step */}
         {currentStep === "existing-reservation" && tutor && existingReservation && (
           <Card className="border-0 shadow-2xl bg-gradient-to-br from-white to-orange-50 animate-slide-up">
             <CardHeader className="pb-4">
@@ -335,7 +395,7 @@ export default function ImprovedTutorPage() {
               <Alert className="border-orange-200 bg-gradient-to-r from-orange-50 to-red-50 animate-pulse">
                 <Clock className="h-4 sm:h-5 w-4 sm:w-5 text-orange-600" />
                 <AlertDescription className="text-orange-800 font-medium text-sm sm:text-base">
-                  You have a reservation in this hour at Table {existingReservation.table.tableNumber} 🎯
+                  Tutor already has a reservation around this time 🎯
                 </AlertDescription>
               </Alert>
 
@@ -352,7 +412,12 @@ export default function ImprovedTutorPage() {
                   className="text-xs sm:text-sm py-1 sm:py-2 px-2 sm:px-4 bg-gradient-to-r from-green-100 to-blue-100 border-green-300"
                 >
                   <TableIcon className="w-3 sm:w-4 h-3 sm:h-4 mr-1" />
-                  Reserved Table: {existingReservation.table.tableNumber}
+                  Your Table: {
+                    // --- CORRECTED ACCESS HERE ---
+                    existingReservation.tableId && typeof existingReservation.tableId === 'object'
+                      ? existingReservation.tableId.tableNumber
+                      : 'N/A' // Fallback if tableId is null or not an object
+                  }
                 </Badge>
               </div>
 
@@ -362,7 +427,7 @@ export default function ImprovedTutorPage() {
                   className="flex-1 py-4 sm:py-6 bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 rounded-xl shadow-lg transform hover:scale-105 transition-all duration-200"
                 >
                   <Home className="w-4 sm:w-5 h-4 sm:h-5 mr-2" />
-                  Go Home
+                  Go to Live View
                 </Button>
                 <Button
                   variant="outline"
@@ -377,7 +442,6 @@ export default function ImprovedTutorPage() {
           </Card>
         )}
 
-        {/* Table Selection Step */}
         {currentStep === "table-selection" && tutor && (
           <Card className="border-0 shadow-2xl bg-gradient-to-br from-white to-purple-50 animate-slide-up">
             <CardHeader className="pb-4">
@@ -388,7 +452,7 @@ export default function ImprovedTutorPage() {
                 Hello {tutor.firstName}! 🌟
               </CardTitle>
               <CardDescription className="text-center text-sm sm:text-base text-gray-600">
-                Choose an available table for your reservation ✨
+                Choose an available table for your study session ✨
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4 sm:space-y-6">
@@ -414,14 +478,16 @@ export default function ImprovedTutorPage() {
                   {availableTables.map((table, index) => (
                     <Button
                       key={table._id}
+                      onClick={() => handleTableSelection(table)}
+                      disabled={loading}
                       variant="outline"
                       className={`h-16 sm:h-24 flex flex-col items-center justify-center border-2 rounded-xl shadow-lg transform hover:scale-105 transition-all duration-300 bg-gradient-to-br from-white to-green-50 hover:from-green-100 hover:to-blue-100 border-green-300 hover:border-green-400 animate-fade-in text-xs sm:text-base`}
                       style={{ animationDelay: `${index * 100}ms` }}
-                      onClick={() => handleTableSelection(table)}
-                      disabled={loading}
                     >
                       <TableIcon className="w-5 sm:w-8 h-5 sm:h-8 mb-1 sm:mb-2 text-green-600" />
-                      <span className="font-semibold text-green-700">Table {table.tableNumber}</span>
+                      <span className="font-semibold text-green-700">
+                        Table {table.tableNumber}
+                      </span>
                     </Button>
                   ))}
                 </div>
@@ -445,7 +511,6 @@ export default function ImprovedTutorPage() {
           </Card>
         )}
 
-        {/* Success Step */}
         {currentStep === "success" && tutor && selectedTable && (
           <Card className="border-0 shadow-2xl bg-gradient-to-br from-white to-green-50 animate-bounce-in">
             <CardHeader className="pb-4">
@@ -482,7 +547,7 @@ export default function ImprovedTutorPage() {
               <Alert className="bg-gradient-to-r from-green-50 to-blue-50 border-green-200 animate-pulse">
                 <CheckCircle className="h-4 sm:h-5 w-4 sm:w-5 text-green-600" />
                 <AlertDescription className="text-green-800 font-medium text-sm sm:text-base">
-                  Your reservation is confirmed for this hour. Please proceed to your table. 🚀
+                  Your reservation is confirmed! Please proceed to your table and start studying. 📚
                 </AlertDescription>
               </Alert>
 
@@ -491,7 +556,7 @@ export default function ImprovedTutorPage() {
                 className="w-full py-4 sm:py-6 text-base sm:text-lg font-semibold bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 rounded-xl shadow-lg transform hover:scale-105 transition-all duration-200"
               >
                 <Home className="w-5 sm:w-6 h-5 sm:h-6 mr-2" />
-                Return Home
+                View Live Status
               </Button>
             </CardContent>
           </Card>
@@ -541,3 +606,4 @@ export default function ImprovedTutorPage() {
     </div>
   )
 }
+
